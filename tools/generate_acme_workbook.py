@@ -11,6 +11,7 @@ import csv
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
+from openpyxl.chart import BarChart, Reference
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MD_PATH = os.path.join(ROOT, "save6", "SAFe6OrganizationStructure.md")
@@ -629,6 +630,125 @@ def build_tasks_and_rollup_sheets(wb: Workbook, resources: List[Resource], tasks
         ws_a_team.cell(row=i, column=4+SPRINT_COUNT, value=f"=SUMIFS(Actuals_Rollup!${total_letter}:${total_letter},Actuals_Rollup!$B:$B,{a_ref},Actuals_Rollup!$C:$C,{b_ref},Actuals_Rollup!$D:$D,{c_ref})")
 
 
+def build_variance_art(wb: Workbook):
+    # Requires Summary_ART and Summary_Actuals_ART to exist
+    if "Summary_ART" not in wb.sheetnames or "Summary_Actuals_ART" not in wb.sheetnames:
+        return None
+    ws_plan = wb["Summary_ART"]
+    ws_act = wb["Summary_Actuals_ART"]
+
+    # Create/overwrite variance sheet
+    if "Summary_Variance_ART" in wb.sheetnames:
+        del wb["Summary_Variance_ART"]
+    ws_var = wb.create_sheet("Summary_Variance_ART")
+
+    # Gather ART list from planned summary
+    arts = [row[0] for row in ws_plan.iter_rows(min_row=2, values_only=True) if row[0]]
+
+    # Headers: ART, Var S1..Sn, Planned Total, Actual Total, Var Total, Var %
+    headers = ["ART"] + [f"Var S{i} Hrs" for i in range(1, SPRINT_COUNT+1)] + [
+        "Planned Total Hrs","Actual Total Hrs","Var Total Hrs","Var Total %"
+    ]
+    ws_var.append(headers)
+
+    # Column indices on Summary_ART and Summary_Actuals_ART
+    # Planned per-sprint hours start at col 4; total at 4+SPRINT_COUNT
+    plan_s_start = 4
+    plan_total_col = 4 + SPRINT_COUNT
+    # Actual per-sprint hours start at col 2; total at 2+SPRINT_COUNT
+    act_s_start = 2
+    act_total_col = 2 + SPRINT_COUNT
+
+    for i, art in enumerate(arts, start=2):
+        ws_var.cell(row=i, column=1, value=art)
+        a_ref = f"$A{i}"
+        # Per sprint variance = Actual - Planned via SUMIF against respective sheets
+        out_col = 2
+        for s in range(SPRINT_COUNT):
+            plan_col_letter = get_column_letter(plan_s_start + s)
+            act_col_letter = get_column_letter(act_s_start + s)
+            formula = (
+                f"=SUMIF(Summary_Actuals_ART!$A:$A,{a_ref},Summary_Actuals_ART!${act_col_letter}:${act_col_letter})"
+                f"-SUMIF(Summary_ART!$A:$A,{a_ref},Summary_ART!${plan_col_letter}:${plan_col_letter})"
+            )
+            ws_var.cell(row=i, column=out_col, value=formula)
+            out_col += 1
+        # Planned total
+        ws_var.cell(row=i, column=out_col, value=f"=SUMIF(Summary_ART!$A:$A,{a_ref},Summary_ART!${get_column_letter(plan_total_col)}:${get_column_letter(plan_total_col)})")
+        out_col += 1
+        # Actual total
+        ws_var.cell(row=i, column=out_col, value=f"=SUMIF(Summary_Actuals_ART!$A:$A,{a_ref},Summary_Actuals_ART!${get_column_letter(act_total_col)}:${get_column_letter(act_total_col)})")
+        out_col += 1
+        # Variance total (Actual - Planned)
+        ws_var.cell(row=i, column=out_col, value=f"={get_column_letter(out_col-1)}{i}-{get_column_letter(out_col-2)}{i}")
+        out_col += 1
+        # Variance %
+        ws_var.cell(row=i, column=out_col, value=f"=IFERROR({get_column_letter(out_col-1)}{i}/{get_column_letter(out_col-3)}{i},0)")
+
+    style_header(ws_var, 1)
+    # Set widths
+    widths = {1:12}
+    for c in range(SPRINT_COUNT):
+        widths[2+c] = 12
+    tail_start = 2 + SPRINT_COUNT
+    widths[tail_start] = 16
+    widths[tail_start+1] = 16
+    widths[tail_start+2] = 14
+    widths[tail_start+3] = 12
+    set_col_widths(ws_var, widths)
+    return arts
+
+
+def update_dashboard_with_art_chart(wb: Workbook, arts: Optional[List[str]]):
+    if "Dashboard" not in wb.sheetnames or arts is None:
+        return
+    ws_dash = wb["Dashboard"]
+    # Start a table after existing content
+    start_row = ws_dash.max_row + 2
+    ws_dash.cell(row=start_row, column=1, value="ART")
+    ws_dash.cell(row=start_row, column=2, value="Planned Total Hrs")
+    ws_dash.cell(row=start_row, column=3, value="Actual Total Hrs")
+    ws_dash.cell(row=start_row, column=4, value="Variance Hrs")
+    ws_dash.cell(row=start_row, column=5, value="Variance %")
+    style_header(ws_dash, start_row)
+
+    # Columns on Summary_Variance_ART
+    # A: ART, then after SPRINT_COUNT variance columns we have Planned Total, Actual Total, Var, Var %
+    var_ws = wb["Summary_Variance_ART"]
+    for idx, art in enumerate(arts, start=start_row+1):
+        # ART name
+        ws_dash.cell(row=idx, column=1, value=art)
+        a_ref = f"$A{idx}"
+        # Fetch values via SUMIF from variance sheet
+        # Compute column letters on variance sheet
+        plan_total_col = 1 + 1 + SPRINT_COUNT  # A + VarCols + Planned Total
+        act_total_col = plan_total_col + 1
+        var_total_col = act_total_col + 1
+        var_pct_col = var_total_col + 1
+        ws_dash.cell(row=idx, column=2, value=f"=SUMIF(Summary_Variance_ART!$A:$A,{a_ref},Summary_Variance_ART!${get_column_letter(plan_total_col)}:${get_column_letter(plan_total_col)})")
+        ws_dash.cell(row=idx, column=3, value=f"=SUMIF(Summary_Variance_ART!$A:$A,{a_ref},Summary_Variance_ART!${get_column_letter(act_total_col)}:${get_column_letter(act_total_col)})")
+        ws_dash.cell(row=idx, column=4, value=f"=SUMIF(Summary_Variance_ART!$A:$A,{a_ref},Summary_Variance_ART!${get_column_letter(var_total_col)}:${get_column_letter(var_total_col)})")
+        ws_dash.cell(row=idx, column=5, value=f"=SUMIF(Summary_Variance_ART!$A:$A,{a_ref},Summary_Variance_ART!${get_column_letter(var_pct_col)}:${get_column_letter(var_pct_col)})")
+
+    # Create a clustered column chart comparing planned vs actual by ART
+    data_start_row = start_row
+    data_end_row = ws_dash.max_row
+    if data_end_row > data_start_row:
+        chart = BarChart()
+        chart.type = "col"
+        chart.title = "Planned vs Actual by ART"
+        chart.y_axis.title = "Hours"
+        chart.x_axis.title = "ART"
+        # Series: columns 2 and 3, categories from column 1
+        data_ref = Reference(ws_dash, min_col=2, min_row=data_start_row, max_col=3, max_row=data_end_row)
+        cats_ref = Reference(ws_dash, min_col=1, min_row=data_start_row+1, max_row=data_end_row)
+        chart.add_data(data_ref, titles_from_data=True)
+        chart.set_categories(cats_ref)
+        chart.height = 12
+        chart.width = 24
+        ws_dash.add_chart(chart, f"G2")
+
+
 def main():
     global SPRINT_COUNT, SPRINT_CALENDAR_LENGTH_DAYS, WORKING_DAYS_PER_SPRINT, HOURS_PER_WORK_DAY, DEFAULT_CAPACITY_HOURS_PER_SPRINT, MD_PATH, OUT_XLSX
 
@@ -676,6 +796,8 @@ def main():
     from openpyxl import load_workbook
     wb = load_workbook(out)
     build_tasks_and_rollup_sheets(wb, data["resources"], args.tasks_csv)
+    arts = build_variance_art(wb)
+    update_dashboard_with_art_chart(wb, arts)
     wb.save(out)
     print(f"Workbook generated: {out}")
 

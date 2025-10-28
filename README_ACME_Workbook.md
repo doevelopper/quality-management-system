@@ -69,6 +69,13 @@ New sheets created:
 - Summary_Actuals_ART: per-ART aggregation of actual hours by sprint and total
 - Summary_Actuals_Team: per-(ART, Team, Unit) aggregation
 
+### Variance and dashboard visual
+When a tasks CSV is supplied, the generator also creates:
+- Summary_Variance_ART: per-sprint variance (Actual - Planned) by ART, plus planned/actual totals, variance hours, and variance %.
+- Dashboard visual: a clustered column chart comparing Planned vs Actual by ART, with a compact table of totals.
+
+If no tasks CSV is provided, the variance sheet and chart are omitted.
+
 Note: Assignee names are matched to `Resource_Workload` resources to infer ART/Team/Unit for rollup summaries. If a name doesn't match, ART/Team/Unit will be blank but the hours still roll up.
 
 ## Name assignment policy
