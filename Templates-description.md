@@ -161,6 +161,92 @@
 - **Links:** Requirements → Test Cases → Test Results → Defects
 - **File Naming:** `TTM-[PROJ].md` or `TTM-[PROJ].xlsx`
 
+### **20. Acceptance Test Plan (ATP)**
+**Priority: CRITICAL**
+- **Purpose:** Final customer/stakeholder validation before system delivery
+- **Position in V-Model:** Highest level of testing - validates complete system against stakeholder needs
+- **Contains:** Acceptance criteria, customer sign-off procedures, delivery prerequisites
+- **Traceability:** Validates StRS and URS at delivery stage
+- **File Naming:** `ATP-[PROJ].md`
+- **Test Plan ID Format:** `ATP-[PROJ]-nnnn-v [StRS/URS-PROJ-Type-nnnn-v]`
+
+### **21. Acceptance Test Report (ATR)**
+**Priority: CRITICAL**
+- **Purpose:** Document final acceptance test results and customer approval
+- **Contains:** Acceptance test execution results, customer feedback, formal acceptance/rejection
+- **File Naming:** `ATR-[PROJ].md`
+- **Test Report ID Format:** `ATR-[PROJ]-ATP-aaaa-cccc-[P/F]-yyyymmdd-v`
+
+---
+
+## 🔒 **Safety and Security Analysis Templates**
+
+### **22. Failure Modes and Effects Analysis (FMEA)**
+**Priority: CRITICAL** (for safety-critical systems)
+- **Purpose:** Systematic analysis of potential failure modes and their effects
+- **Compliance:** ISO 13849, IEC 61508, ISO 26262
+- **Contains:** Failure modes, effects, severity, occurrence, detection, risk priority numbers (RPN)
+- **Traceability:** Links to SafetyRS, risk mitigation requirements
+- **File Naming:** `FMEA-[PROJ].md` or `FMEA-[PROJ]-[Subsystem].xlsx`
+
+### **23. Hazard Analysis (HA)**
+**Priority: CRITICAL** (for safety-critical systems)
+- **Purpose:** Identify and analyze system hazards and their causes
+- **Compliance:** ISO 13849, ISO 10218, MIL-STD-882E
+- **Contains:** Hazard identification, classification, causal factors, risk assessment
+- **Traceability:** Links to SafetyRS, safety requirements derivation
+- **File Naming:** `HA-[PROJ].md` or `HA-[PROJ].xlsx`
+
+### **24. Threat Model (TM)**
+**Priority: CRITICAL** (for security-critical systems)
+- **Purpose:** Identify and analyze security threats and attack vectors
+- **Compliance:** NIST SP 800-160, IEC 62443, ISO/IEC 27001
+- **Contains:** Threat actors, attack surfaces, threat scenarios, STRIDE analysis, attack trees
+- **Traceability:** Links to SecRS, security controls
+- **File Naming:** `TM-[PROJ].md` or `TM-[PROJ].xlsx`
+
+---
+
+## 📋 **Project Management Templates**
+
+### **25. Verification and Validation Plan (VVP)**
+**Priority: HIGH**
+- **Purpose:** Define overall V&V strategy, methods, resources, and schedule
+- **Compliance:** ISO/IEC/IEEE 15288, ISO/IEC/IEEE 12207
+- **Contains:** V&V objectives, methods, test levels, acceptance criteria, roles and responsibilities
+- **Benefits:** Ensures comprehensive and coordinated V&V activities across all levels
+- **File Naming:** `VVP-[PROJ].md`
+
+### **26. Configuration Management Plan (CMP)**
+**Priority: HIGH**
+- **Purpose:** Define configuration control, version management, and change control processes
+- **Compliance:** ISO/IEC/IEEE 12207, ISO 9001
+- **Contains:** Version control strategy, baseline management, change control procedures, CM tools
+- **Benefits:** Ensures document and code integrity throughout lifecycle
+- **File Naming:** `CMP-[PROJ].md`
+
+### **27. Risk Register (RR)**
+**Priority: HIGH**
+- **Purpose:** Track all project risks (technical, schedule, cost, resources)
+- **Compliance:** ISO/IEC/IEEE 16085 (Risk Management)
+- **Contains:** Risk identification, probability, impact, mitigation strategies, risk owners
+- **Note:** Separate from safety (FMEA/HA) and security (TM) specific risks
+- **File Naming:** `RR-[PROJ].md` or `RR-[PROJ].xlsx`
+
+### **28. Bill of Materials (BOM)**
+**Priority: MEDIUM-HIGH** (for hardware projects)
+- **Purpose:** Complete list of hardware components, parts, and assemblies
+- **Contains:** Part numbers, quantities, suppliers, specifications, revision levels
+- **Traceability:** Links to HwRS, procurement, manufacturing
+- **File Naming:** `BOM-[PROJ].xlsx` or `BOM-[PROJ]-[Assembly].xlsx`
+
+### **29. Design Review Records (DRR)**
+**Priority: MEDIUM**
+- **Purpose:** Document formal design review meetings and decisions
+- **Contains:** Review objectives, attendees, findings, action items, approvals
+- **Types:** Preliminary Design Review (PDR), Critical Design Review (CDR), Test Readiness Review (TRR)
+- **File Naming:** `DRR-[PROJ]-[ReviewType]-[yyyymmdd].md`
+
 ---
 
 ## 📊 **Priority Matrix for Implementation**
@@ -177,14 +263,24 @@
 | **Software Test Plan (SwTP)** | 🔴 CRITICAL | Validates SwRS - mandatory for V&V | High |
 | **Software Test Report (SwTR)** | 🔴 CRITICAL | Documents software verification results | Medium |
 | **Safety Requirements (SafetyRS)** | 🔴 CRITICAL | Mandatory for unmanned systems | High |
-| **Security Requirements (SecRS)** | 🔴 CRITICAL | Your standard emphasizes security-by-design | High |
+| **Security Requirements (SecRS)** | 🔴 CRITICAL | Security-by-design approach | High |
+| **FMEA** | 🔴 CRITICAL | Safety-critical analysis (ISO 13849/61508) | High |
+| **Hazard Analysis (HA)** | 🔴 CRITICAL | Safety hazard identification | High |
+| **Threat Model (TM)** | 🔴 CRITICAL | Security threat analysis (IEC 62443) | High |
+| **Acceptance Test Plan (ATP)** | 🔴 CRITICAL | Final customer validation | Medium |
+| **Acceptance Test Report (ATR)** | 🔴 CRITICAL | Delivery approval documentation | Low |
+| **Verification & Validation Plan (VVP)** | 🟠 HIGH | ISO 15288 requirement, V&V coordination | Medium |
+| **Configuration Management Plan (CMP)** | 🟠 HIGH | Version control and baseline management | Medium |
+| **Risk Register (RR)** | 🟠 HIGH | Project risk management | Low-Medium |
 | **Interface Control Document (ICD)** | 🟠 HIGH | Complex multi-subsystem integration | High |
-| **Stakeholder Requirements (StRS)** | 🟠 HIGH | Missing top of requirements hierarchy | Medium |
-| **Operational Requirements (ORD/ConOps)** | 🟠 HIGH | Critical for operational systems | Medium |
+| **Stakeholder Requirements (StRS)** | 🟠 HIGH | Top of requirements hierarchy | Medium |
+| **Operational Requirements (ConOps)** | 🟠 HIGH | Critical for operational systems | Medium |
 | **Requirements Traceability Matrix (RTM)** | 🟠 HIGH | Audit compliance, gap analysis | Low |
 | **Hardware Requirements (HwRS)** | 🟡 MEDIUM | If significant hardware development | Medium |
+| **Bill of Materials (BOM)** | 🟡 MEDIUM | Hardware projects only | Low-Medium |
+| **Design Review Records (DRR)** | 🟡 MEDIUM | Formal review documentation | Low |
 | **Test Traceability Matrix (TTM)** | 🟡 MEDIUM | Enhances V&V documentation | Low |
-| **Design Requirements (DRS/SDD)** | 🟡 MEDIUM | Bridges requirements to implementation | Medium |
+| **Design Requirements (SDD)** | 🟡 MEDIUM | Bridges requirements to implementation | Medium |
 | **Generic Requirements Template** | 🟢 LOW | Nice-to-have for flexibility | Low |
 
 ---

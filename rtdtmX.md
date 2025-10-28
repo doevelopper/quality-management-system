@@ -15,6 +15,8 @@
     - [2.2 Test Plans](#22-test-plans)
     - [2.3 Test Reports](#23-test-reports)
     - [2.4 Traceability Documents](#24-traceability-documents)
+    - [2.5 Safety and Security Analysis Documents](#25-safety-and-security-analysis-documents)
+    - [2.6 Project Management Documents](#26-project-management-documents)
   - [3. Naming Convention](#3-naming-convention)
     - [3.0 File and Directory Naming Convention](#30-file-and-directory-naming-convention)
       - [3.0.1 Directory Structure](#301-directory-structure)
@@ -235,6 +237,7 @@ The following document types are defined to capture requirements and their valid
 - **`SafetyTP`**: Safety Test Plan - Validates `SafetyRS`
 - **`SecTP`**: Security Test Plan - Validates `SecRS`
 - **`HwTP`**: Hardware Test Plan - Validates `HwRS`
+- **`ATP`**: Acceptance Test Plan - Final customer/stakeholder validation
 
 ### 2.3 Test Reports
 
@@ -245,6 +248,7 @@ The following document types are defined to capture requirements and their valid
 - **`SafetyTR`**: Safety Test Report - Results from `SafetyTP`
 - **`SecTR`**: Security Test Report - Results from `SecTP`
 - **`HwTR`**: Hardware Test Report - Results from `HwTP`
+- **`ATR`**: Acceptance Test Report - Results from `ATP`
 
 ### 2.4 Traceability Documents
 
@@ -266,6 +270,72 @@ The following document types are defined to capture requirements and their valid
   - **Format**: Matrix linking threat models → SecRS → security controls → SecTP → SecTR
   - **Compliance**: IEC 62443, NIST SP 800-160, ISO/IEC 27001
   - **Benefits**: Security audit support, vulnerability gap analysis, attack surface management
+
+### 2.5 Safety and Security Analysis Documents
+
+- **`FMEA`**: Failure Modes and Effects Analysis
+  - **Priority**: CRITICAL (for safety-critical systems)
+  - **Purpose**: Systematic analysis of potential failure modes and their effects
+  - **Compliance**: ISO 13849, IEC 61508, ISO 26262
+  - **Contains**: Failure modes, effects, severity, occurrence, detection, risk priority numbers (RPN)
+  - **Traceability**: Links to SafetyRS, risk mitigation requirements
+  - **File Naming**: `FMEA-[PROJ].md` or `FMEA-[PROJ]-[Subsystem].xlsx`
+
+- **`HA`**: Hazard Analysis
+  - **Priority**: CRITICAL (for safety-critical systems)
+  - **Purpose**: Identify and analyze system hazards and their causes
+  - **Compliance**: ISO 13849, ISO 10218, MIL-STD-882E
+  - **Contains**: Hazard identification, hazard classification, causal factors, risk assessment
+  - **Traceability**: Links to SafetyRS, safety requirements derivation
+  - **File Naming**: `HA-[PROJ].md` or `HA-[PROJ].xlsx`
+
+- **`TM`**: Threat Model
+  - **Priority**: CRITICAL (for security-critical systems)
+  - **Purpose**: Identify and analyze security threats and attack vectors
+  - **Compliance**: NIST SP 800-160, IEC 62443, ISO/IEC 27001
+  - **Contains**: Threat actors, attack surfaces, threat scenarios, STRIDE analysis, attack trees
+  - **Traceability**: Links to SecRS, security controls
+  - **File Naming**: `TM-[PROJ].md` or `TM-[PROJ].xlsx`
+
+### 2.6 Project Management Documents
+
+- **`VVP`**: Verification and Validation Plan
+  - **Priority**: HIGH
+  - **Purpose**: Define overall V&V strategy, methods, resources, and schedule
+  - **Compliance**: ISO/IEC/IEEE 15288, ISO/IEC/IEEE 12207
+  - **Contains**: V&V objectives, methods, test levels, acceptance criteria, roles and responsibilities
+  - **Benefits**: Ensures comprehensive and coordinated V&V activities
+  - **File Naming**: `VVP-[PROJ].md`
+
+- **`CMP`**: Configuration Management Plan
+  - **Priority**: HIGH
+  - **Purpose**: Define configuration control, version management, and change control processes
+  - **Compliance**: ISO/IEC/IEEE 12207, ISO 9001
+  - **Contains**: Version control strategy, baseline management, change control procedures, CM tools
+  - **Benefits**: Ensures document and code integrity throughout lifecycle
+  - **File Naming**: `CMP-[PROJ].md`
+
+- **`RR`**: Risk Register
+  - **Priority**: HIGH
+  - **Purpose**: Track all project risks (technical, schedule, cost, resources)
+  - **Compliance**: ISO/IEC/IEEE 16085 (Risk Management)
+  - **Contains**: Risk identification, probability, impact, mitigation strategies, risk owners
+  - **Note**: Separate from safety (FMEA/HA) and security (TM) specific risks
+  - **File Naming**: `RR-[PROJ].md` or `RR-[PROJ].xlsx`
+
+- **`BOM`**: Bill of Materials
+  - **Priority**: MEDIUM-HIGH (for hardware projects)
+  - **Purpose**: Complete list of hardware components, parts, and assemblies
+  - **Contains**: Part numbers, quantities, suppliers, specifications, revision levels
+  - **Traceability**: Links to HwRS, procurement, manufacturing
+  - **File Naming**: `BOM-[PROJ].xlsx` or `BOM-[PROJ]-[Assembly].xlsx`
+
+- **`DRR`**: Design Review Records
+  - **Priority**: MEDIUM
+  - **Purpose**: Document formal design review meetings and decisions
+  - **Contains**: Review objectives, attendees, findings, action items, approvals
+  - **Types**: Preliminary Design Review (PDR), Critical Design Review (CDR), Test Readiness Review (TRR)
+  - **File Naming**: `DRR-[PROJ]-[ReviewType]-[yyyymmdd].md`
 
 Each type serves a distinct purpose in the project lifecycle, ensuring comprehensive coverage from stakeholder needs through conception, design, implementation, to verification and validation.
 
@@ -317,10 +387,20 @@ Projects should organize documentation using the following directory structure:
 │   ├── operations/
 │   │   ├── ConOps-[PROJ]-[Domain].md
 │   │   └── ...
-│   └── traceability/
+│   ├── traceability/
 │       ├── RTM-[PROJ].md           # Requirements Traceability Matrix
 │       ├── TTM-[PROJ].md           # Test Traceability Matrix
 │       └── SRTM-[PROJ].md          # Security Requirements Traceability Matrix
+│   ├── safety-security/
+│       ├── FMEA-[PROJ].md          # Failure Modes and Effects Analysis
+│       ├── HA-[PROJ].md            # Hazard Analysis
+│       └── TM-[PROJ].md            # Threat Model
+│   └── management/
+│       ├── VVP-[PROJ].md           # Verification and Validation Plan
+│       ├── CMP-[PROJ].md           # Configuration Management Plan
+│       ├── RR-[PROJ].md            # Risk Register
+│       ├── BOM-[PROJ].xlsx         # Bill of Materials
+│       └── DRR-[PROJ]-*.md         # Design Review Records
 ```
 
 #### 3.0.2 Requirements Document File Naming
