@@ -74,6 +74,7 @@ When a tasks CSV is supplied, the generator also creates:
 - Summary_Variance_ART: per-sprint variance (Actual - Planned) by ART, plus planned/actual totals, variance hours, and variance %.
 - Summary_Variance_Team: per-sprint variance by (ART, Team, Unit), with totals and variance %.
 - Dashboard visual: a clustered column chart comparing Planned vs Actual by ART, with a compact table of totals.
+  - Variance sheets include conditional formatting: red for overruns (Actual > Planned), green for underruns (Actual < Planned).
 
 Optional stacked chart (actuals only):
 - Pass `--stacked-chart` to add a stacked column chart of Actuals by ART per Sprint.

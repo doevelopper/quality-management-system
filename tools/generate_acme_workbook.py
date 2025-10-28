@@ -12,6 +12,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.chart import BarChart, Reference
+from openpyxl.formatting.rule import CellIsRule
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MD_PATH = os.path.join(ROOT, "save6", "SAFe6OrganizationStructure.md")
@@ -696,6 +697,24 @@ def build_variance_art(wb: Workbook):
     widths[tail_start+2] = 14
     widths[tail_start+3] = 12
     set_col_widths(ws_var, widths)
+
+    # Conditional formatting: red for overrun (>0), green for underrun (<0)
+    if ws_var.max_row > 1:
+        from_row = 2
+        to_row = ws_var.max_row
+        # Per-sprint variance columns
+        start_col = 2
+        end_col = 1 + SPRINT_COUNT
+        rng = f"{get_column_letter(start_col)}{from_row}:{get_column_letter(end_col)}{to_row}"
+        red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+        green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+        ws_var.conditional_formatting.add(rng, CellIsRule(operator='greaterThan', formula=['0'], fill=red_fill))
+        ws_var.conditional_formatting.add(rng, CellIsRule(operator='lessThan', formula=['0'], fill=green_fill))
+        # Total variance column (Var Total Hrs)
+        var_total_col = tail_start + 2
+        rng_total = f"{get_column_letter(var_total_col)}{from_row}:{get_column_letter(var_total_col)}{to_row}"
+        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='greaterThan', formula=['0'], fill=red_fill))
+        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='lessThan', formula=['0'], fill=green_fill))
     return arts
 
 
@@ -812,6 +831,23 @@ def build_variance_team(wb: Workbook):
     widths[tail+2] = 14
     widths[tail+3] = 12
     set_col_widths(ws_var, widths)
+    # Conditional formatting on team variance
+    if ws_var.max_row > 1:
+        from_row = 2
+        to_row = ws_var.max_row
+        # Per-sprint variance columns start at 4
+        start_col = 4
+        end_col = 3 + SPRINT_COUNT
+        rng = f"{get_column_letter(start_col)}{from_row}:{get_column_letter(end_col)}{to_row}"
+        red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+        green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+        ws_var.conditional_formatting.add(rng, CellIsRule(operator='greaterThan', formula=['0'], fill=red_fill))
+        ws_var.conditional_formatting.add(rng, CellIsRule(operator='lessThan', formula=['0'], fill=green_fill))
+        # Var Total Hrs column at tail+2
+        var_total_col = tail + 2
+        rng_total = f"{get_column_letter(var_total_col)}{from_row}:{get_column_letter(var_total_col)}{to_row}"
+        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='greaterThan', formula=['0'], fill=red_fill))
+        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='lessThan', formula=['0'], fill=green_fill))
     return True
 
 
