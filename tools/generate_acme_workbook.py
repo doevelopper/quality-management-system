@@ -31,6 +31,9 @@ WORKING_DAYS_PER_SPRINT = 10
 HOURS_PER_WORK_DAY = 6.5
 # Default capacity hours per sprint for each resource
 DEFAULT_CAPACITY_HOURS_PER_SPRINT = WORKING_DAYS_PER_SPRINT * HOURS_PER_WORK_DAY
+# Neutral zone for variance (in hours). Variances whose absolute value is <= this threshold
+# are considered "neutral" (no red/green fill). Can be overridden via CLI.
+VARIANCE_NEUTRAL_THRESHOLD_HOURS = 0.0
 
 # Simple name pools per "universe" to assign themed names
 MARVEL = [
@@ -698,7 +701,7 @@ def build_variance_art(wb: Workbook):
     widths[tail_start+3] = 12
     set_col_widths(ws_var, widths)
 
-    # Conditional formatting: red for overrun (>0), green for underrun (<0)
+    # Conditional formatting: red for overrun (> threshold), green for underrun (< -threshold)
     if ws_var.max_row > 1:
         from_row = 2
         to_row = ws_var.max_row
@@ -708,13 +711,38 @@ def build_variance_art(wb: Workbook):
         rng = f"{get_column_letter(start_col)}{from_row}:{get_column_letter(end_col)}{to_row}"
         red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
         green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
-        ws_var.conditional_formatting.add(rng, CellIsRule(operator='greaterThan', formula=['0'], fill=red_fill))
-        ws_var.conditional_formatting.add(rng, CellIsRule(operator='lessThan', formula=['0'], fill=green_fill))
+        thr = VARIANCE_NEUTRAL_THRESHOLD_HOURS
+        # Use threshold in formulas so small deltas are neutral
+        ws_var.conditional_formatting.add(rng, CellIsRule(operator='greaterThan', formula=[str(thr)], fill=red_fill))
+        ws_var.conditional_formatting.add(rng, CellIsRule(operator='lessThan', formula=[str(-thr)], fill=green_fill))
         # Total variance column (Var Total Hrs)
         var_total_col = tail_start + 2
         rng_total = f"{get_column_letter(var_total_col)}{from_row}:{get_column_letter(var_total_col)}{to_row}"
-        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='greaterThan', formula=['0'], fill=red_fill))
-        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='lessThan', formula=['0'], fill=green_fill))
+        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='greaterThan', formula=[str(thr)], fill=red_fill))
+        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='lessThan', formula=[str(-thr)], fill=green_fill))
+
+    # Add a small legend explaining the colors and threshold
+    legend_title_font = Font(bold=True)
+    legend_row_start = 2
+    # Last data column on this sheet is: per-sprint end (1+SPRINT_COUNT) + 4 tail columns
+    last_data_col = (1 + SPRINT_COUNT) + 4
+    legend_col = last_data_col + 2  # leave a spacer
+    ws_var.cell(row=legend_row_start, column=legend_col, value="Legend (Variance Coloring)")
+    ws_var.cell(row=legend_row_start, column=legend_col).font = legend_title_font
+    # Rows: Overrun, Underrun, Neutral, Threshold value
+    ws_var.cell(row=legend_row_start+1, column=legend_col, value=f"Overrun (> {VARIANCE_NEUTRAL_THRESHOLD_HOURS} h)")
+    ws_var.cell(row=legend_row_start+2, column=legend_col, value=f"Underrun (< {-VARIANCE_NEUTRAL_THRESHOLD_HOURS} h)")
+    ws_var.cell(row=legend_row_start+3, column=legend_col, value=f"Neutral (|var| ≤ {VARIANCE_NEUTRAL_THRESHOLD_HOURS} h)")
+    # Color swatches in adjacent column
+    legend_swatch_col = legend_col + 1
+    red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+    green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+    neutral_fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
+    ws_var.cell(row=legend_row_start+1, column=legend_swatch_col, value=" ").fill = red_fill
+    ws_var.cell(row=legend_row_start+2, column=legend_swatch_col, value=" ").fill = green_fill
+    ws_var.cell(row=legend_row_start+3, column=legend_swatch_col, value=" ").fill = neutral_fill
+    # Set some widths for legend columns
+    set_col_widths(ws_var, {legend_col: 30, legend_swatch_col: 8})
     return arts
 
 
@@ -831,7 +859,7 @@ def build_variance_team(wb: Workbook):
     widths[tail+2] = 14
     widths[tail+3] = 12
     set_col_widths(ws_var, widths)
-    # Conditional formatting on team variance
+    # Conditional formatting on team variance (threshold-aware)
     if ws_var.max_row > 1:
         from_row = 2
         to_row = ws_var.max_row
@@ -841,13 +869,32 @@ def build_variance_team(wb: Workbook):
         rng = f"{get_column_letter(start_col)}{from_row}:{get_column_letter(end_col)}{to_row}"
         red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
         green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
-        ws_var.conditional_formatting.add(rng, CellIsRule(operator='greaterThan', formula=['0'], fill=red_fill))
-        ws_var.conditional_formatting.add(rng, CellIsRule(operator='lessThan', formula=['0'], fill=green_fill))
+        thr = VARIANCE_NEUTRAL_THRESHOLD_HOURS
+        ws_var.conditional_formatting.add(rng, CellIsRule(operator='greaterThan', formula=[str(thr)], fill=red_fill))
+        ws_var.conditional_formatting.add(rng, CellIsRule(operator='lessThan', formula=[str(-thr)], fill=green_fill))
         # Var Total Hrs column at tail+2
         var_total_col = tail + 2
         rng_total = f"{get_column_letter(var_total_col)}{from_row}:{get_column_letter(var_total_col)}{to_row}"
-        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='greaterThan', formula=['0'], fill=red_fill))
-        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='lessThan', formula=['0'], fill=green_fill))
+        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='greaterThan', formula=[str(thr)], fill=red_fill))
+        ws_var.conditional_formatting.add(rng_total, CellIsRule(operator='lessThan', formula=[str(-thr)], fill=green_fill))
+    # Legend block
+    legend_title_font = Font(bold=True)
+    legend_row_start = 2
+    last_data_col = (3 + SPRINT_COUNT) + 4  # end of per-sprint + 4 tail columns
+    legend_col = last_data_col + 2
+    ws_var.cell(row=legend_row_start, column=legend_col, value="Legend (Variance Coloring)")
+    ws_var.cell(row=legend_row_start, column=legend_col).font = legend_title_font
+    ws_var.cell(row=legend_row_start+1, column=legend_col, value=f"Overrun (> {VARIANCE_NEUTRAL_THRESHOLD_HOURS} h)")
+    ws_var.cell(row=legend_row_start+2, column=legend_col, value=f"Underrun (< {-VARIANCE_NEUTRAL_THRESHOLD_HOURS} h)")
+    ws_var.cell(row=legend_row_start+3, column=legend_col, value=f"Neutral (|var| ≤ {VARIANCE_NEUTRAL_THRESHOLD_HOURS} h)")
+    legend_swatch_col = legend_col + 1
+    red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+    green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+    neutral_fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
+    ws_var.cell(row=legend_row_start+1, column=legend_swatch_col, value=" ").fill = red_fill
+    ws_var.cell(row=legend_row_start+2, column=legend_swatch_col, value=" ").fill = green_fill
+    ws_var.cell(row=legend_row_start+3, column=legend_swatch_col, value=" ").fill = neutral_fill
+    set_col_widths(ws_var, {legend_col: 30, legend_swatch_col: 8})
     return True
 
 
@@ -901,7 +948,7 @@ def build_stacked_chart_by_sprint_art(wb: Workbook):
 
 
 def main():
-    global SPRINT_COUNT, SPRINT_CALENDAR_LENGTH_DAYS, WORKING_DAYS_PER_SPRINT, HOURS_PER_WORK_DAY, DEFAULT_CAPACITY_HOURS_PER_SPRINT, MD_PATH, OUT_XLSX
+    global SPRINT_COUNT, SPRINT_CALENDAR_LENGTH_DAYS, WORKING_DAYS_PER_SPRINT, HOURS_PER_WORK_DAY, DEFAULT_CAPACITY_HOURS_PER_SPRINT, MD_PATH, OUT_XLSX, VARIANCE_NEUTRAL_THRESHOLD_HOURS
 
     parser = argparse.ArgumentParser(description="Generate ACME Project Team & Workload workbook from SAFe6 org markdown")
     parser.add_argument("--sprints", type=int, default=None, help="Number of sprints to plan (default: 8)")
@@ -913,6 +960,7 @@ def main():
     parser.add_argument("--out", type=str, default=OUT_XLSX, help="Output XLSX path")
     parser.add_argument("--tasks-csv", type=str, default=None, help="Path to CSV file of tasks to roll up actual hours per assignee")
     parser.add_argument("--stacked-chart", action="store_true", help="Add stacked chart by sprint across ARTs (requires --tasks-csv)")
+    parser.add_argument("--variance-threshold-hours", type=float, default=None, help="Treat |variance| <= this many hours as neutral (no red/green). Default: 0")
 
     args = parser.parse_args()
 
@@ -929,6 +977,9 @@ def main():
     DEFAULT_CAPACITY_HOURS_PER_SPRINT = WORKING_DAYS_PER_SPRINT * HOURS_PER_WORK_DAY
     if args.capacity_hours is not None and args.capacity_hours > 0:
         DEFAULT_CAPACITY_HOURS_PER_SPRINT = args.capacity_hours
+    # Variance threshold override (allow 0 as explicit neutral)
+    if args.variance_threshold_hours is not None and args.variance_threshold_hours >= 0:
+        VARIANCE_NEUTRAL_THRESHOLD_HOURS = float(args.variance_threshold_hours)
 
     if args.markdown:
         MD_PATH = args.markdown

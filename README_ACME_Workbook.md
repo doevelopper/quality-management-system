@@ -21,6 +21,9 @@ You can regenerate the workbook without editing the script by passing flags:
 # Examples
 python tools/generate_acme_workbook.py --sprints 6 --length 10 --capacity-hours 50
 
+# Treat small variances as neutral (e.g., <= 2h)
+python tools/generate_acme_workbook.py --tasks-csv tasks.csv --variance-threshold-hours 2
+
 # Fine-grained capacity
 python tools/generate_acme_workbook.py \
   --sprints 8 \
@@ -74,7 +77,12 @@ When a tasks CSV is supplied, the generator also creates:
 - Summary_Variance_ART: per-sprint variance (Actual - Planned) by ART, plus planned/actual totals, variance hours, and variance %.
 - Summary_Variance_Team: per-sprint variance by (ART, Team, Unit), with totals and variance %.
 - Dashboard visual: a clustered column chart comparing Planned vs Actual by ART, with a compact table of totals.
-  - Variance sheets include conditional formatting: red for overruns (Actual > Planned), green for underruns (Actual < Planned).
+  - Variance sheets include conditional formatting with a neutral threshold:
+    - Red: Overrun (variance > threshold hours)
+    - Green: Underrun (variance < -threshold hours)
+    - Neutral: |variance| ≤ threshold (no fill)
+  - Pass `--variance-threshold-hours <h>` to set the neutral zone. Default is 0 (no neutral zone).
+  - A small legend block on each variance sheet explains the colors and shows the current threshold used at generation time.
 
 Optional stacked chart (actuals only):
 - Pass `--stacked-chart` to add a stacked column chart of Actuals by ART per Sprint.
