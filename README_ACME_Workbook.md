@@ -52,6 +52,25 @@ python tools/generate_acme_workbook.py \
  - Summary_ART: Pivot-style aggregation by ART (headcount, total capacity per sprint, S1..S8 hours, totals, utilization, over/under).
  - Summary_Team: Pivot-style aggregation by ART + Team + Unit with the same metrics as above.
 
+### Actuals import and roll-up (optional)
+If you have a CSV of tasks with actual (or estimated) hours and assignees, you can include it when generating:
+
+```bash
+python tools/generate_acme_workbook.py --tasks-csv path/to/tasks.csv
+```
+
+CSV headers supported (case-insensitive):
+- Required: `Assignee`, `Sprint` (e.g., "Sprint 3" or `3`), `Hours` (or `Actual (h)` or `ActualHrs` or `Estimate (h)`)
+- Optional: `ID`, `Title`, `Team`, `ART`, `Status`
+
+New sheets created:
+- Actual_Tasks: the raw tasks normalized
+- Actuals_Rollup: per-assignee, per-sprint hour totals (+ overall total)
+- Summary_Actuals_ART: per-ART aggregation of actual hours by sprint and total
+- Summary_Actuals_Team: per-(ART, Team, Unit) aggregation
+
+Note: Assignee names are matched to `Resource_Workload` resources to infer ART/Team/Unit for rollup summaries. If a name doesn't match, ART/Team/Unit will be blank but the hours still roll up.
+
 ## Name assignment policy
 When a role has no explicit name in the source markdown, the generator assigns a themed random name based on the team/unit:
 - Marvel teams (Avengers, Guardians, X‑Men, Fantastic Four, S.H.I.E.L.D.): Marvel-themed names

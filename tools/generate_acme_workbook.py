@@ -6,6 +6,7 @@ import random
 from datetime import date, timedelta
 from typing import List, Dict, Optional
 import argparse
+import csv
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -493,6 +494,141 @@ def build_workbook(data: Dict[str, List[Resource]]):
     return OUT_XLSX
 
 
+def parse_tasks_csv(csv_path: str) -> List[Dict[str, str]]:
+    tasks: List[Dict[str, str]] = []
+    with open(csv_path, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            tasks.append(row)
+    return tasks
+
+
+def normalize_tasks(tasks: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    norm: List[Dict[str, str]] = []
+    for row in tasks:
+        # Support multiple header variants
+        idv = row.get('ID') or row.get('Id') or row.get('TaskID') or ''
+        title = row.get('Title') or row.get('Summary') or ''
+        assignee = row.get('Assignee') or row.get('Owner') or row.get('Assigned To') or ''
+        team = row.get('Team') or ''
+        art = row.get('ART') or row.get('Art') or ''
+        sprint = row.get('Sprint') or row.get('Iteration') or row.get('Sprint Number') or ''
+        hours = row.get('Hours') or row.get('Actual (h)') or row.get('ActualHrs') or row.get('Estimate (h)') or row.get('EstimateHrs') or '0'
+        status = row.get('Status') or ''
+        try:
+            # Accept 'Sprint 3' or '3'
+            s_val = str(sprint).strip()
+            if s_val.lower().startswith('sprint'):
+                s_idx = int(s_val.split()[-1])
+            else:
+                s_idx = int(float(s_val)) if s_val else 0
+        except Exception:
+            s_idx = 0
+        try:
+            hrs = float(hours) if str(hours).strip() else 0.0
+        except Exception:
+            hrs = 0.0
+        if not assignee:
+            continue
+        norm.append({
+            'ID': str(idv),
+            'Title': title,
+            'Assignee': assignee,
+            'Team': team,
+            'ART': art,
+            'SprintIndex': s_idx,
+            'Hours': hrs,
+            'Status': status,
+        })
+    return norm
+
+
+def build_tasks_and_rollup_sheets(wb: Workbook, resources: List[Resource], tasks_csv: Optional[str]):
+    if not tasks_csv or not os.path.exists(tasks_csv):
+        return  # no-op
+    tasks_raw = parse_tasks_csv(tasks_csv)
+    tasks = normalize_tasks(tasks_raw)
+
+    # Actual_Tasks sheet
+    ws_tasks = wb.create_sheet("Actual_Tasks")
+    headers = ["ID","Title","Assignee","Sprint","Hours","Team","ART","Status"]
+    ws_tasks.append(headers)
+    for t in tasks:
+        ws_tasks.append([
+            t['ID'], t['Title'], t['Assignee'],
+            f"Sprint {t['SprintIndex']}" if t['SprintIndex'] else "",
+            t['Hours'], t['Team'], t['ART'], t['Status']
+        ])
+    style_header(ws_tasks, 1)
+    set_col_widths(ws_tasks, {1:12,2:40,3:24,4:12,5:10,6:18,7:10,8:14})
+
+    # Map assignee -> resource context (ART, Team, Unit)
+    res_index: Dict[str, Resource] = {r.name: r for r in resources}
+
+    # Rollup per assignee per sprint
+    from collections import defaultdict
+    roll: Dict[str, List[float]] = defaultdict(lambda: [0.0]*SPRINT_COUNT)
+    for t in tasks:
+        s_idx = t['SprintIndex']
+        if isinstance(s_idx, int) and 1 <= s_idx <= SPRINT_COUNT:
+            roll[t['Assignee']][s_idx-1] += float(t['Hours'])
+
+    # Build Actuals_Rollup sheet
+    ws_roll = wb.create_sheet("Actuals_Rollup")
+    roll_headers = ["Resource","ART","Team","Unit"] + [f"S{i} Hrs" for i in range(1, SPRINT_COUNT+1)] + ["Total Hrs"]
+    ws_roll.append(roll_headers)
+    for assignee, per_sprint in sorted(roll.items()):
+        ctx = res_index.get(assignee)
+        art = ctx.art if ctx else ""
+        team = ctx.team if ctx else ""
+        unit = ctx.unit if ctx else ""
+        total = sum(per_sprint)
+        ws_roll.append([assignee, art or "", team or "", unit or ""] + per_sprint + [total])
+    style_header(ws_roll, 1)
+    widths = {1:24,2:10,3:14,4:28}
+    for i in range(SPRINT_COUNT):
+        widths[5+i] = 10
+    widths[5+SPRINT_COUNT] = 12
+    set_col_widths(ws_roll, widths)
+
+    # Summary sheets for actuals
+    # By ART
+    ws_a_art = wb.create_sheet("Summary_Actuals_ART")
+    art_headers = ["ART"] + [f"S{i} Hrs" for i in range(1, SPRINT_COUNT+1)] + ["Total Hrs"]
+    ws_a_art.append(art_headers)
+    style_header(ws_a_art, 1)
+    # Distinct ARTs from rollup sheet
+    arts = sorted({row[1] for row in ws_roll.iter_rows(min_row=2, values_only=True) if row[1]})
+    for i, art in enumerate(arts, start=2):
+        ws_a_art.cell(row=i, column=1, value=art)
+        a_ref = f"$A{i}"
+        # SUMIF over Actuals_Rollup ART column (B)
+        for s in range(SPRINT_COUNT):
+            col_letter = get_column_letter(4 + 1 + s)  # columns after Resource(A), ART(B), Team(C), Unit(D)
+            ws_a_art.cell(row=i, column=2+s, value=f"=SUMIF(Actuals_Rollup!$B:$B,{a_ref},Actuals_Rollup!${col_letter}:${col_letter})")
+        # Total Hrs column in Actuals_Rollup is at index 4 + SPRINT_COUNT + 1
+        total_letter = get_column_letter(4 + SPRINT_COUNT + 1)
+        ws_a_art.cell(row=i, column=2+SPRINT_COUNT, value=f"=SUMIF(Actuals_Rollup!$B:$B,{a_ref},Actuals_Rollup!${total_letter}:${total_letter})")
+
+    # By Team (ART+Team+Unit)
+    ws_a_team = wb.create_sheet("Summary_Actuals_Team")
+    team_headers = ["ART","Team","Unit"] + [f"S{i} Hrs" for i in range(1, SPRINT_COUNT+1)] + ["Total Hrs"]
+    ws_a_team.append(team_headers)
+    style_header(ws_a_team, 1)
+    # Distinct keys
+    keys = sorted({(row[1], row[2], row[3]) for row in ws_roll.iter_rows(min_row=2, values_only=True) if row[1] or row[2]})
+    for i, (art, team, unit) in enumerate(keys, start=2):
+        ws_a_team.cell(row=i, column=1, value=art)
+        ws_a_team.cell(row=i, column=2, value=team)
+        ws_a_team.cell(row=i, column=3, value=unit)
+        a_ref = f"$A{i}"; b_ref = f"$B{i}"; c_ref = f"$C{i}"
+        for s in range(SPRINT_COUNT):
+            col_letter = get_column_letter(4 + 1 + s)
+            ws_a_team.cell(row=i, column=4+s, value=f"=SUMIFS(Actuals_Rollup!${col_letter}:${col_letter},Actuals_Rollup!$B:$B,{a_ref},Actuals_Rollup!$C:$C,{b_ref},Actuals_Rollup!$D:$D,{c_ref})")
+        total_letter = get_column_letter(4 + SPRINT_COUNT + 1)
+        ws_a_team.cell(row=i, column=4+SPRINT_COUNT, value=f"=SUMIFS(Actuals_Rollup!${total_letter}:${total_letter},Actuals_Rollup!$B:$B,{a_ref},Actuals_Rollup!$C:$C,{b_ref},Actuals_Rollup!$D:$D,{c_ref})")
+
+
 def main():
     global SPRINT_COUNT, SPRINT_CALENDAR_LENGTH_DAYS, WORKING_DAYS_PER_SPRINT, HOURS_PER_WORK_DAY, DEFAULT_CAPACITY_HOURS_PER_SPRINT, MD_PATH, OUT_XLSX
 
@@ -504,6 +640,7 @@ def main():
     parser.add_argument("--capacity-hours", type=float, default=None, help="Override default capacity hours per sprint for each resource")
     parser.add_argument("--markdown", type=str, default=MD_PATH, help="Path to SAFe6OrganizationStructure.md")
     parser.add_argument("--out", type=str, default=OUT_XLSX, help="Output XLSX path")
+    parser.add_argument("--tasks-csv", type=str, default=None, help="Path to CSV file of tasks to roll up actual hours per assignee")
 
     args = parser.parse_args()
 
@@ -532,7 +669,14 @@ def main():
     with open(MD_PATH, "r", encoding="utf-8") as f:
         md_text = f.read()
     data = parse_org_markdown(md_text)
+    # Build planned workbook first
     out = build_workbook(data)
+    # Then optionally add actuals sheets if tasks CSV provided
+    # Re-open the workbook to append actuals sheets in the same file
+    from openpyxl import load_workbook
+    wb = load_workbook(out)
+    build_tasks_and_rollup_sheets(wb, data["resources"], args.tasks_csv)
+    wb.save(out)
     print(f"Workbook generated: {out}")
 
 
