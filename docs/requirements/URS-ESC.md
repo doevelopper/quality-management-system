@@ -10,9 +10,9 @@
 ## Requirements
 
 ### URS-ESC-M-0001-1 [StRS-ESC-M-0001-1]
-- Description:
-- Rationale:
-- References:
+- Description: The ESC shall use authenticated and encrypted communication for configuration and telemetry.
+- Rationale: Protects against unauthorized access and tampering.
+- References: IEC 62443-3-3, NIST SP 800-160, NIST SP 800-52r2
 
 ### URS-ESC-M-0002-1 [StRS-ESC-M-0001-1]
 - Description:
