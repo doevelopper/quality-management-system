@@ -249,7 +249,82 @@
 
 ---
 
-## 📊 **Priority Matrix for Implementation**
+## � **Additional Traceability and Test Templates**
+
+### **30. Security Requirements Traceability Matrix (SRTM)**
+**Priority: HIGH** (for security-critical systems)
+- **Purpose:** Dedicated traceability for security requirements from threat analysis to validation
+- **Format:** Matrix linking Threat Model (TM) → SecRS → security controls → SecTP → SecTR
+- **Compliance:** IEC 62443, NIST SP 800-160, ISO/IEC 27001
+- **Benefits:** Security audit support, vulnerability gap analysis, attack surface management
+- **File Naming:** `SRTM-[PROJ].md` or `SRTM-[PROJ].xlsx`
+
+### **31. Stakeholder Requirements Test Plan (StRTP)**
+**Priority: HIGH**
+- **Purpose:** Validate Stakeholder Requirements Specification (StRS)
+- **Position in V-Model:** Validates the highest-level requirements
+- **Contains:** High-level validation scenarios, acceptance criteria, stakeholder witnesses
+- **Traceability:** Validates StRS
+- **File Naming:** `StRTP-[PROJ].md`
+- **Test Plan ID Format:** `StRTP-[PROJ]-nnnn-v [StRS-PROJ-Type-nnnn-v]`
+
+### **32. Stakeholder Requirements Test Report (StRTR)**
+**Priority: HIGH**
+- **Purpose:** Document results of StRTP execution
+- **Contains:** Execution results, observations, deviations, evidence, stakeholder sign-off
+- **Traceability:** Documents StRTP execution results
+- **File Naming:** `StRTR-[PROJ].md`
+- **Test Report ID Format:** `StRTR-[PROJ]-StRTP-aaaa-cccc-[P|F]-yyyymmdd-v`
+
+### **33. Safety Test Plan (SafetyTP)**
+**Priority: CRITICAL** (for safety-critical systems)
+- **Purpose:** Validate Safety Requirements Specification (SafetyRS)
+- **Contains:** Failure injection tests, response time measurements, reliability tests
+- **Traceability:** Validates SafetyRS
+- **File Naming:** `SafetyTP-[PROJ].md`
+- **Test Plan ID Format:** `SafetyTP-[PROJ]-nnnn-v [SafetyRS-PROJ-Type-nnnn-v]`
+
+### **34. Safety Test Report (SafetyTR)**
+**Priority: CRITICAL** (for safety-critical systems)
+- **Purpose:** Document results of SafetyTP execution
+- **Contains:** Results, statistical analysis, reliability metrics, evidence
+- **Traceability:** Documents SafetyTP execution results
+- **File Naming:** `SafetyTR-[PROJ].md`
+- **Test Report ID Format:** `SafetyTR-[PROJ]-SafetyTP-aaaa-cccc-[P|F]-yyyymmdd-v`
+
+### **35. Security Test Plan (SecTP)**
+**Priority: CRITICAL** (for security-critical systems)
+- **Purpose:** Validate Security Requirements Specification (SecRS)
+- **Contains:** Penetration testing, vulnerability scanning, protocol analysis
+- **Traceability:** Validates SecRS
+- **File Naming:** `SecTP-[PROJ].md`
+- **Test Plan ID Format:** `SecTP-[PROJ]-nnnn-v [SecRS-PROJ-Type-nnnn-v]`
+
+### **36. Security Test Report (SecTR)**
+**Priority: CRITICAL** (for security-critical systems)
+- **Purpose:** Document results of SecTP execution
+- **Contains:** Findings, severity ratings, remediation recommendations, evidence
+- **Traceability:** Documents SecTP execution results
+- **File Naming:** `SecTR-[PROJ].md`
+- **Test Report ID Format:** `SecTR-[PROJ]-SecTP-aaaa-cccc-[P|F]-yyyymmdd-v`
+
+### **37. Hardware Test Plan (HwTP)**
+**Priority: MEDIUM-HIGH**
+- **Purpose:** Validate Hardware Requirements Specification (HwRS)
+- **Contains:** Environmental, electrical, and mechanical tests; component validation
+- **Traceability:** Validates HwRS
+- **File Naming:** `HwTP-[PROJ].md`
+- **Test Plan ID Format:** `HwTP-[PROJ]-nnnn-v [HwRS-PROJ-Type-nnnn-v]`
+
+### **38. Hardware Test Report (HwTR)**
+**Priority: MEDIUM**
+- **Purpose:** Document results of HwTP execution
+- **Contains:** Measurements, compliance results, evidence, deviations
+- **Traceability:** Documents HwTP execution results
+- **File Naming:** `HwTR-[PROJ].md`
+- **Test Report ID Format:** `HwTR-[PROJ]-HwTP-aaaa-cccc-[P|F]-yyyymmdd-v`
+
+## �📊 **Priority Matrix for Implementation**
 
 | Template | Priority | Reason | Estimated Effort |
 |----------|----------|--------|------------------|
@@ -282,5 +357,15 @@
 | **Test Traceability Matrix (TTM)** | 🟡 MEDIUM | Enhances V&V documentation | Low |
 | **Design Requirements (SDD)** | 🟡 MEDIUM | Bridges requirements to implementation | Medium |
 | **Generic Requirements Template** | 🟢 LOW | Nice-to-have for flexibility | Low |
+
+| **Security Requirements Traceability Matrix (SRTM)** | 🟠 HIGH | Security audit and gap analysis | Low |
+| **Stakeholder Test Plan (StRTP)** | 🟠 HIGH | Validates StRS at top level | Medium |
+| **Stakeholder Test Report (StRTR)** | 🟠 HIGH | Documents StRTP results | Low |
+| **Safety Test Plan (SafetyTP)** | 🔴 CRITICAL | Validates SafetyRS (safety-critical) | High |
+| **Safety Test Report (SafetyTR)** | 🔴 CRITICAL | Documents SafetyTP results | Medium |
+| **Security Test Plan (SecTP)** | 🔴 CRITICAL | Validates SecRS (security-critical) | High |
+| **Security Test Report (SecTR)** | 🔴 CRITICAL | Documents SecTP results | Medium |
+| **Hardware Test Plan (HwTP)** | 🟠 HIGH | Validates hardware requirements | Medium |
+| **Hardware Test Report (HwTR)** | 🟡 MEDIUM | Documents hardware verification | Low-Medium |
 
 ---
