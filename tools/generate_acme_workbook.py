@@ -366,6 +366,70 @@ def build_workbook(data: Dict[str, List[Resource]]):
     set_col_widths(ws_rw, widths)
     ws_rw.freeze_panes = "H2"  # freeze before allocations
 
+    # Summary by ART (pivot-style via formulas)
+    ws_art = wb.create_sheet("Summary_ART")
+    # Headers
+    art_headers = [
+        "ART","Headcount","Total Cap/Sprint",
+        "S1 Hrs","S2 Hrs","S3 Hrs","S4 Hrs","S5 Hrs","S6 Hrs","S7 Hrs","S8 Hrs",
+        "Total Hrs","Overall Util %","Avg Util %","Over/Under Hrs"
+    ]
+    ws_art.append(art_headers)
+    style_header(ws_art, 1)
+    set_col_widths(ws_art, {1:10,2:12,3:16,4:10,5:10,6:10,7:10,8:10,9:10,10:10,11:10,12:12,13:16,14:12,15:16})
+
+    # Distinct ARTs
+    distinct_arts = sorted({(r.art or "").strip() for r in resources if (r.art or "").strip()})
+    for i, art in enumerate(distinct_arts, start=2):
+        ws_art.cell(row=i, column=1, value=art)
+        a_ref = f"$A{i}"
+        # Col mapping from Resource_Workload
+        # ART=D, CAP=G, S1..S8 Hrs=P..W, Total X, Avg Y, Over Z
+        ws_art.cell(row=i, column=2, value=f"=COUNTIF(Resource_Workload!$D:$D,{a_ref})")
+        ws_art.cell(row=i, column=3, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!$G:$G)")
+        hrs_cols = ["$P:$P","$Q:$Q","$R:$R","$S:$S","$T:$T","$U:$U","$V:$V","$W:$W"]
+        for s, col in enumerate(hrs_cols, start=4):
+            ws_art.cell(row=i, column=s, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!{col})")
+        ws_art.cell(row=i, column=12, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!$X:$X)")
+        # Overall Util % = TotalHrs / (TotalCapPerSprint * 8)
+        ws_art.cell(row=i, column=13, value=f"=IFERROR({get_column_letter(12)}{i}/({get_column_letter(3)}{i}*8),0)")
+        ws_art.cell(row=i, column=14, value=f"=AVERAGEIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!$Y:$Y)")
+        ws_art.cell(row=i, column=15, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!$Z:$Z)")
+
+    # Summary by Team (ART + Team + Unit)
+    ws_team = wb.create_sheet("Summary_Team")
+    team_headers = [
+        "ART","Team","Unit","Headcount","Total Cap/Sprint",
+        "S1 Hrs","S2 Hrs","S3 Hrs","S4 Hrs","S5 Hrs","S6 Hrs","S7 Hrs","S8 Hrs",
+        "Total Hrs","Overall Util %","Avg Util %","Over/Under Hrs"
+    ]
+    ws_team.append(team_headers)
+    style_header(ws_team, 1)
+    set_col_widths(ws_team, {1:10,2:14,3:28,4:12,5:16,6:10,7:10,8:10,9:10,10:10,11:10,12:10,13:10,14:12,15:16,16:12,17:16})
+
+    distinct_team_keys = sorted({(r.art or "", r.team or "", r.unit or "") for r in resources if (r.art or "").strip() and (r.team or "").strip()})
+    for i, (art, team, unit) in enumerate(distinct_team_keys, start=2):
+        ws_team.cell(row=i, column=1, value=art)
+        ws_team.cell(row=i, column=2, value=team)
+        ws_team.cell(row=i, column=3, value=unit)
+        a_ref = f"$A{i}"  # ART
+        b_ref = f"$B{i}"  # Team
+        c_ref = f"$C{i}"  # Unit
+        # COUNTIFS over ART(D), Team(E), Unit(F)
+        ws_team.cell(row=i, column=4, value="=COUNTIFS(Resource_Workload!$D:$D,"+a_ref+",Resource_Workload!$E:$E,"+b_ref+",Resource_Workload!$F:$F,"+c_ref+")")
+        ws_team.cell(row=i, column=5, value="=SUMIFS(Resource_Workload!$G:$G,Resource_Workload!$D:$D,"+a_ref+",Resource_Workload!$E:$E,"+b_ref+",Resource_Workload!$F:$F,"+c_ref+")")
+        hrs_cols = ["$P:$P","$Q:$Q","$R:$R","$S:$S","$T:$T","$U:$U","$V:$V","$W:$W"]
+        for s, col in enumerate(hrs_cols, start=6):
+            ws_team.cell(row=i, column=s, value=f"=SUMIFS(Resource_Workload!{col},Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
+        # Total hours (X)
+        ws_team.cell(row=i, column=14, value=f"=SUMIFS(Resource_Workload!$X:$X,Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
+        # Overall Util % = TotalHrs / (TotalCapPerSprint * 8)
+        ws_team.cell(row=i, column=15, value=f"=IFERROR({get_column_letter(14)}{i}/({get_column_letter(5)}{i}*8),0)")
+        # Avg Util % (Y)
+        ws_team.cell(row=i, column=16, value=f"=AVERAGEIFS(Resource_Workload!$Y:$Y,Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
+        # Over/Under (Z)
+        ws_team.cell(row=i, column=17, value=f"=SUMIFS(Resource_Workload!$Z:$Z,Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
+
     # Dashboard – lightweight KPIs
     ws_dash = wb.create_sheet("Dashboard")
     ws_dash.append(["Metric","Value"]) 

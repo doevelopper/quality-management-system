@@ -29,6 +29,8 @@ python tools/generate_acme_workbook.py
   - S1 Hrs..S8 Hrs: auto-computed hours.
   - Total Hrs, Avg Util %, Over/Under Hrs: auto-computed.
 - Dashboard: Lightweight KPIs computed from Resource_Workload.
+ - Summary_ART: Pivot-style aggregation by ART (headcount, total capacity per sprint, S1..S8 hours, totals, utilization, over/under).
+ - Summary_Team: Pivot-style aggregation by ART + Team + Unit with the same metrics as above.
 
 ## Name assignment policy
 When a role has no explicit name in the source markdown, the generator assigns a themed random name based on the team/unit:
