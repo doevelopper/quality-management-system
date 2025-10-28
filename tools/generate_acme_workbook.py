@@ -749,6 +749,121 @@ def update_dashboard_with_art_chart(wb: Workbook, arts: Optional[List[str]]):
         ws_dash.add_chart(chart, f"G2")
 
 
+def build_variance_team(wb: Workbook):
+    # Requires planned Summary_Team and actual Summary_Actuals_Team
+    if "Summary_Team" not in wb.sheetnames or "Summary_Actuals_Team" not in wb.sheetnames:
+        return None
+    ws_plan = wb["Summary_Team"]
+    ws_act = wb["Summary_Actuals_Team"]
+
+    if "Summary_Variance_Team" in wb.sheetnames:
+        del wb["Summary_Variance_Team"]
+    ws_var = wb.create_sheet("Summary_Variance_Team")
+
+    # Distinct (ART,Team,Unit) from planned sheet
+    keys = [(row[0], row[1], row[2]) for row in ws_plan.iter_rows(min_row=2, values_only=True) if row[0] or row[1]]
+
+    headers = ["ART","Team","Unit"] + [f"Var S{i} Hrs" for i in range(1, SPRINT_COUNT+1)] + [
+        "Planned Total Hrs","Actual Total Hrs","Var Total Hrs","Var Total %"
+    ]
+    ws_var.append(headers)
+
+    # Column indices on planned/actual team summaries
+    # Planned per-sprint start at col 6; planned total at 6+SPRINT_COUNT
+    plan_s_start = 6
+    plan_total_col = 6 + SPRINT_COUNT
+    # Actual per-sprint start at col 4; total at 4+SPRINT_COUNT
+    act_s_start = 4
+    act_total_col = 4 + SPRINT_COUNT
+
+    for i, (art, team, unit) in enumerate(keys, start=2):
+        ws_var.cell(row=i, column=1, value=art)
+        ws_var.cell(row=i, column=2, value=team)
+        ws_var.cell(row=i, column=3, value=unit)
+        a_ref = f"$A{i}"; b_ref = f"$B{i}"; c_ref = f"$C{i}"
+        out_col = 4
+        for s in range(SPRINT_COUNT):
+            plan_col_letter = get_column_letter(plan_s_start + s)
+            act_col_letter = get_column_letter(act_s_start + s)
+            formula = (
+                f"=SUMIFS(Summary_Actuals_Team!${act_col_letter}:${act_col_letter},Summary_Actuals_Team!$A:$A,{a_ref},Summary_Actuals_Team!$B:$B,{b_ref},Summary_Actuals_Team!$C:$C,{c_ref})"
+                f"-SUMIFS(Summary_Team!${plan_col_letter}:${plan_col_letter},Summary_Team!$A:$A,{a_ref},Summary_Team!$B:$B,{b_ref},Summary_Team!$C:$C,{c_ref})"
+            )
+            ws_var.cell(row=i, column=out_col, value=formula)
+            out_col += 1
+        # Planned total
+        ws_var.cell(row=i, column=out_col, value=f"=SUMIFS(Summary_Team!${get_column_letter(plan_total_col)}:${get_column_letter(plan_total_col)},Summary_Team!$A:$A,{a_ref},Summary_Team!$B:$B,{b_ref},Summary_Team!$C:$C,{c_ref})")
+        out_col += 1
+        # Actual total
+        ws_var.cell(row=i, column=out_col, value=f"=SUMIFS(Summary_Actuals_Team!${get_column_letter(act_total_col)}:${get_column_letter(act_total_col)},Summary_Actuals_Team!$A:$A,{a_ref},Summary_Actuals_Team!$B:$B,{b_ref},Summary_Actuals_Team!$C:$C,{c_ref})")
+        out_col += 1
+        # Variance total and %
+        ws_var.cell(row=i, column=out_col, value=f"={get_column_letter(out_col-1)}{i}-{get_column_letter(out_col-2)}{i}")
+        out_col += 1
+        ws_var.cell(row=i, column=out_col, value=f"=IFERROR({get_column_letter(out_col-1)}{i}/{get_column_letter(out_col-3)}{i},0)")
+
+    style_header(ws_var, 1)
+    widths = {1:10,2:14,3:28}
+    for c in range(SPRINT_COUNT):
+        widths[4+c] = 12
+    tail = 4 + SPRINT_COUNT
+    widths[tail] = 16
+    widths[tail+1] = 16
+    widths[tail+2] = 14
+    widths[tail+3] = 12
+    set_col_widths(ws_var, widths)
+    return True
+
+
+def build_stacked_chart_by_sprint_art(wb: Workbook):
+    # Requires Summary_Actuals_ART
+    if "Summary_Actuals_ART" not in wb.sheetnames:
+        return None
+    ws_src = wb["Summary_Actuals_ART"]
+    # Create helper table sheet
+    title = "Summary_Actuals_BySprint_ART"
+    if title in wb.sheetnames:
+        del wb[title]
+    ws = wb.create_sheet(title)
+    # Header: Sprint + ART names
+    arts = [row[0] for row in ws_src.iter_rows(min_row=2, values_only=True) if row[0]]
+    ws.cell(row=1, column=1, value="Sprint")
+    for j, art in enumerate(arts, start=2):
+        ws.cell(row=1, column=j, value=art)
+    # Fill rows for S1..Sn and SUMIF values
+    for i in range(1, SPRINT_COUNT+1):
+        ws.cell(row=1+i, column=1, value=f"Sprint {i}")
+        act_col_letter = get_column_letter(2 + (i-1))  # Summary_Actuals_ART per-sprint col
+        for j in range(len(arts)):
+            # criterion is header cell in this sheet (ART name)
+            crit_ref = f"${get_column_letter(2+j)}$1"
+            ws.cell(row=1+i, column=2+j, value=f"=SUMIF(Summary_Actuals_ART!$A:$A,{crit_ref},Summary_Actuals_ART!${act_col_letter}:${act_col_letter})")
+
+    style_header(ws, 1)
+    set_col_widths(ws, {1:12})
+    for j in range(len(arts)):
+        set_col_widths(ws, {2+j: 14})
+
+    # Create stacked chart
+    if len(arts) == 0:
+        return None
+    chart = BarChart()
+    chart.type = "col"
+    chart.grouping = "stacked"
+    chart.title = "Actuals by ART per Sprint (stacked)"
+    chart.y_axis.title = "Hours"
+    chart.x_axis.title = "Sprint"
+    data_ref = Reference(ws, min_col=2, min_row=1, max_col=1+len(arts), max_row=1+SPRINT_COUNT)
+    cats_ref = Reference(ws, min_col=1, min_row=2, max_row=1+SPRINT_COUNT)
+    chart.add_data(data_ref, titles_from_data=True)
+    chart.set_categories(cats_ref)
+    chart.height = 14
+    chart.width = 28
+    # Place chart on the same sheet
+    ws.add_chart(chart, "G2")
+    return True
+
+
 def main():
     global SPRINT_COUNT, SPRINT_CALENDAR_LENGTH_DAYS, WORKING_DAYS_PER_SPRINT, HOURS_PER_WORK_DAY, DEFAULT_CAPACITY_HOURS_PER_SPRINT, MD_PATH, OUT_XLSX
 
@@ -761,6 +876,7 @@ def main():
     parser.add_argument("--markdown", type=str, default=MD_PATH, help="Path to SAFe6OrganizationStructure.md")
     parser.add_argument("--out", type=str, default=OUT_XLSX, help="Output XLSX path")
     parser.add_argument("--tasks-csv", type=str, default=None, help="Path to CSV file of tasks to roll up actual hours per assignee")
+    parser.add_argument("--stacked-chart", action="store_true", help="Add stacked chart by sprint across ARTs (requires --tasks-csv)")
 
     args = parser.parse_args()
 
@@ -797,6 +913,9 @@ def main():
     wb = load_workbook(out)
     build_tasks_and_rollup_sheets(wb, data["resources"], args.tasks_csv)
     arts = build_variance_art(wb)
+    build_variance_team(wb)
+    if args.stacked_chart:
+        build_stacked_chart_by_sprint_art(wb)
     update_dashboard_with_art_chart(wb, arts)
     wb.save(out)
     print(f"Workbook generated: {out}")

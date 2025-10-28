@@ -69,10 +69,15 @@ New sheets created:
 - Summary_Actuals_ART: per-ART aggregation of actual hours by sprint and total
 - Summary_Actuals_Team: per-(ART, Team, Unit) aggregation
 
-### Variance and dashboard visual
+### Variance and dashboard visuals
 When a tasks CSV is supplied, the generator also creates:
 - Summary_Variance_ART: per-sprint variance (Actual - Planned) by ART, plus planned/actual totals, variance hours, and variance %.
+- Summary_Variance_Team: per-sprint variance by (ART, Team, Unit), with totals and variance %.
 - Dashboard visual: a clustered column chart comparing Planned vs Actual by ART, with a compact table of totals.
+
+Optional stacked chart (actuals only):
+- Pass `--stacked-chart` to add a stacked column chart of Actuals by ART per Sprint.
+  - A helper sheet `Summary_Actuals_BySprint_ART` is generated to feed the chart.
 
 If no tasks CSV is provided, the variance sheet and chart are omitted.
 
