@@ -14,6 +14,26 @@ It helps oversee the project, track stakeholders, and plan resource workload.
 python tools/generate_acme_workbook.py
 ```
 
+### CLI parameters
+You can regenerate the workbook without editing the script by passing flags:
+
+```bash
+# Examples
+python tools/generate_acme_workbook.py --sprints 6 --length 10 --capacity-hours 50
+
+# Fine-grained capacity
+python tools/generate_acme_workbook.py \
+  --sprints 8 \
+  --length 14 \
+  --working-days 9 \
+  --hours-per-day 7.0
+
+# Custom input/output paths
+python tools/generate_acme_workbook.py \
+  --markdown save6/SAFe6OrganizationStructure.md \
+  --out ACME_Project_Team_Workload.xlsx
+```
+
 ## Sheets overview
 - Project_Info: Project metadata. Update freely.
 - Sprints: 8, two-week sprints starting next Monday. Adjust dates if needed.

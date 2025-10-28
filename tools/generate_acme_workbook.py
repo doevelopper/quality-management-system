@@ -5,6 +5,7 @@ import sys
 import random
 from datetime import date, timedelta
 from typing import List, Dict, Optional
+import argparse
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -493,6 +494,38 @@ def build_workbook(data: Dict[str, List[Resource]]):
 
 
 def main():
+    global SPRINT_COUNT, SPRINT_CALENDAR_LENGTH_DAYS, WORKING_DAYS_PER_SPRINT, HOURS_PER_WORK_DAY, DEFAULT_CAPACITY_HOURS_PER_SPRINT, MD_PATH, OUT_XLSX
+
+    parser = argparse.ArgumentParser(description="Generate ACME Project Team & Workload workbook from SAFe6 org markdown")
+    parser.add_argument("--sprints", type=int, default=None, help="Number of sprints to plan (default: 8)")
+    parser.add_argument("--length", type=int, default=None, help="Calendar length of a sprint in days (default: 14)")
+    parser.add_argument("--working-days", type=int, default=None, help="Working days per sprint for capacity (default: 10)")
+    parser.add_argument("--hours-per-day", type=float, default=None, help="Hours per work day for capacity (default: 6.5)")
+    parser.add_argument("--capacity-hours", type=float, default=None, help="Override default capacity hours per sprint for each resource")
+    parser.add_argument("--markdown", type=str, default=MD_PATH, help="Path to SAFe6OrganizationStructure.md")
+    parser.add_argument("--out", type=str, default=OUT_XLSX, help="Output XLSX path")
+
+    args = parser.parse_args()
+
+    # Apply overrides to module-level config
+    if args.sprints is not None and args.sprints > 0:
+        SPRINT_COUNT = args.sprints
+    if args.length is not None and args.length > 0:
+        SPRINT_CALENDAR_LENGTH_DAYS = args.length
+    if args.working_days is not None and args.working_days > 0:
+        WORKING_DAYS_PER_SPRINT = args.working_days
+    if args.hours_per_day is not None and args.hours_per_day > 0:
+        HOURS_PER_WORK_DAY = args.hours_per_day
+    # Recompute default capacity or override directly
+    DEFAULT_CAPACITY_HOURS_PER_SPRINT = WORKING_DAYS_PER_SPRINT * HOURS_PER_WORK_DAY
+    if args.capacity_hours is not None and args.capacity_hours > 0:
+        DEFAULT_CAPACITY_HOURS_PER_SPRINT = args.capacity_hours
+
+    if args.markdown:
+        MD_PATH = args.markdown
+    if args.out:
+        OUT_XLSX = args.out
+
     if not os.path.exists(MD_PATH):
         print(f"Markdown not found: {MD_PATH}", file=sys.stderr)
         sys.exit(1)
