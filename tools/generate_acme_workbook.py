@@ -16,6 +16,18 @@ OUT_XLSX = os.path.join(ROOT, "ACME_Project_Team_Workload.xlsx")
 
 random.seed(42)
 
+# === Configurable planning parameters ===
+# Total number of sprints to plan
+SPRINT_COUNT = 8
+# Calendar length of a sprint in days (e.g., 14 for a two-week sprint)
+SPRINT_CALENDAR_LENGTH_DAYS = 14
+# Working days used for capacity per sprint (e.g., 10 weekdays in a 2-week sprint)
+WORKING_DAYS_PER_SPRINT = 10
+# Hours per work day used for capacity calculation
+HOURS_PER_WORK_DAY = 6.5
+# Default capacity hours per sprint for each resource
+DEFAULT_CAPACITY_HOURS_PER_SPRINT = WORKING_DAYS_PER_SPRINT * HOURS_PER_WORK_DAY
+
 # Simple name pools per "universe" to assign themed names
 MARVEL = [
     "Peter Parker","Steve Rogers","Tony Stark","Bruce Banner","Wanda Maximoff","Stephen Strange",
@@ -240,10 +252,10 @@ def build_workbook(data: Dict[str, List[Resource]]):
     ws_sprints = wb.create_sheet("Sprints")
     ws_sprints.append(["Sprint", "Start", "End", "Length (days)"])
     start = next_monday(date.today())
-    for i in range(1, 9):
-        s = start + timedelta(days=(i-1)*14)
-        e = s + timedelta(days=13)
-        ws_sprints.append([f"Sprint {i}", s.isoformat(), e.isoformat(), 14])
+    for i in range(1, SPRINT_COUNT + 1):
+        s = start + timedelta(days=(i-1)*SPRINT_CALENDAR_LENGTH_DAYS)
+        e = s + timedelta(days=SPRINT_CALENDAR_LENGTH_DAYS-1)
+        ws_sprints.append([f"Sprint {i}", s.isoformat(), e.isoformat(), SPRINT_CALENDAR_LENGTH_DAYS])
     style_header(ws_sprints, 1)
     set_col_widths(ws_sprints, {1: 12, 2: 14, 3: 14, 4: 14})
 
@@ -329,8 +341,8 @@ def build_workbook(data: Dict[str, List[Resource]]):
     ws_rw = wb.create_sheet("Resource_Workload")
     # Header
     base_headers = ["Resource","Role","Level","ART","Team","Unit","Cap Hrs/Sprint"]
-    alloc_headers = [f"S{i} %" for i in range(1,9)]
-    hours_headers = [f"S{i} Hrs" for i in range(1,9)]
+    alloc_headers = [f"S{i} %" for i in range(1, SPRINT_COUNT + 1)]
+    hours_headers = [f"S{i} Hrs" for i in range(1, SPRINT_COUNT + 1)]
     tail_headers = ["Total Hrs","Avg Util %","Over/Under Hrs"]
     ws_rw.append(base_headers + alloc_headers + hours_headers + tail_headers)
     style_header(ws_rw, 1)
@@ -338,31 +350,43 @@ def build_workbook(data: Dict[str, List[Resource]]):
     # Populate rows
     start_row = 2
     for idx, r in enumerate(resources, start=start_row):
-        ws_rw.append([r.name, r.role, r.level, r.art or "", r.team or "", r.unit or "", 65] + [0]*8 + [0]*8 + [0,0,0])
-        # Formulas for hours per sprint: hours = cap * percent
+        # Build the row with dynamic number of sprint columns
+        row = [r.name, r.role, r.level, r.art or "", r.team or "", r.unit or "", DEFAULT_CAPACITY_HOURS_PER_SPRINT]
+        row += [0] * SPRINT_COUNT  # allocations
+        row += [0] * SPRINT_COUNT  # hours
+        row += [0, 0, 0]           # totals
+        ws_rw.append(row)
+        # Index helpers
         cap_col = 7
-        for s in range(8):
-            alloc_col = 8 + s
-            hrs_col = 16 + s
+        alloc_start_col = 8
+        alloc_end_col = alloc_start_col + SPRINT_COUNT - 1
+        hours_start_col = alloc_end_col + 1
+        hours_end_col = hours_start_col + SPRINT_COUNT - 1
+        total_col = hours_end_col + 1
+        avg_col = total_col + 1
+        over_col = avg_col + 1
+        # Formulas for hours per sprint: hours = cap * percent
+        for s in range(SPRINT_COUNT):
+            alloc_col = alloc_start_col + s
+            hrs_col = hours_start_col + s
             ws_rw.cell(row=idx, column=hrs_col).value = f"={get_column_letter(cap_col)}{idx}*{get_column_letter(alloc_col)}{idx}"
         # Total
-        total_col = 24
-        ws_rw.cell(row=idx, column=total_col).value = f"=SUM({get_column_letter(16)}{idx}:{get_column_letter(23)}{idx})"
+        ws_rw.cell(row=idx, column=total_col).value = f"=SUM({get_column_letter(hours_start_col)}{idx}:{get_column_letter(hours_end_col)}{idx})"
         # Avg Util
-        avg_col = 25
-        ws_rw.cell(row=idx, column=avg_col).value = f"=AVERAGE({get_column_letter(8)}{idx}:{get_column_letter(15)}{idx})"
-        # Over/Under
-        over_col = 26
-        ws_rw.cell(row=idx, column=over_col).value = f"={get_column_letter(total_col)}{idx}-{get_column_letter(cap_col)}{idx}*8"
+        ws_rw.cell(row=idx, column=avg_col).value = f"=AVERAGE({get_column_letter(alloc_start_col)}{idx}:{get_column_letter(alloc_end_col)}{idx})"
+        # Over/Under relative to sprint count
+        ws_rw.cell(row=idx, column=over_col).value = f"={get_column_letter(total_col)}{idx}-{get_column_letter(cap_col)}{idx}*{SPRINT_COUNT}"
 
     # Widths
     widths = {1:22,2:22,3:14,4:8,5:16,6:28,7:14}
-    for c in range(8):
+    for c in range(SPRINT_COUNT):
         widths[8+c] = 8
-        widths[16+c] = 10
-    widths[24] = 12
-    widths[25] = 12
-    widths[26] = 14
+    for c in range(SPRINT_COUNT):
+        widths[8+SPRINT_COUNT+c] = 10
+    tail_start = 7 + 2*SPRINT_COUNT + 1
+    widths[tail_start] = 12
+    widths[tail_start+1] = 12
+    widths[tail_start+2] = 14
     set_col_widths(ws_rw, widths)
     ws_rw.freeze_panes = "H2"  # freeze before allocations
 
@@ -371,7 +395,7 @@ def build_workbook(data: Dict[str, List[Resource]]):
     # Headers
     art_headers = [
         "ART","Headcount","Total Cap/Sprint",
-        "S1 Hrs","S2 Hrs","S3 Hrs","S4 Hrs","S5 Hrs","S6 Hrs","S7 Hrs","S8 Hrs",
+    ] + [f"S{i} Hrs" for i in range(1, SPRINT_COUNT + 1)] + [
         "Total Hrs","Overall Util %","Avg Util %","Over/Under Hrs"
     ]
     ws_art.append(art_headers)
@@ -383,24 +407,34 @@ def build_workbook(data: Dict[str, List[Resource]]):
     for i, art in enumerate(distinct_arts, start=2):
         ws_art.cell(row=i, column=1, value=art)
         a_ref = f"$A{i}"
-        # Col mapping from Resource_Workload
-        # ART=D, CAP=G, S1..S8 Hrs=P..W, Total X, Avg Y, Over Z
+        # Base counts and capacity (ART=D, CAP=G)
         ws_art.cell(row=i, column=2, value=f"=COUNTIF(Resource_Workload!$D:$D,{a_ref})")
         ws_art.cell(row=i, column=3, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!$G:$G)")
-        hrs_cols = ["$P:$P","$Q:$Q","$R:$R","$S:$S","$T:$T","$U:$U","$V:$V","$W:$W"]
-        for s, col in enumerate(hrs_cols, start=4):
-            ws_art.cell(row=i, column=s, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!{col})")
-        ws_art.cell(row=i, column=12, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!$X:$X)")
-        # Overall Util % = TotalHrs / (TotalCapPerSprint * 8)
-        ws_art.cell(row=i, column=13, value=f"=IFERROR({get_column_letter(12)}{i}/({get_column_letter(3)}{i}*8),0)")
-        ws_art.cell(row=i, column=14, value=f"=AVERAGEIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!$Y:$Y)")
-        ws_art.cell(row=i, column=15, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!$Z:$Z)")
+        # Dynamic per-sprint hours from Resource_Workload
+        alloc_start_col = 8
+        hours_start_col = alloc_start_col + SPRINT_COUNT
+        out_col = 4
+        for s in range(SPRINT_COUNT):
+            hrs_letter = get_column_letter(hours_start_col + s)
+            ws_art.cell(row=i, column=out_col, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!${hrs_letter}:${hrs_letter})")
+            out_col += 1
+        # Tail columns on Resource_Workload
+        total_col_rw = hours_start_col + SPRINT_COUNT
+        avg_col_rw = total_col_rw + 1
+        over_col_rw = avg_col_rw + 1
+        ws_art.cell(row=i, column=out_col, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!${get_column_letter(total_col_rw)}:${get_column_letter(total_col_rw)})")
+        out_col += 1
+        ws_art.cell(row=i, column=out_col, value=f"=IFERROR({get_column_letter(out_col-1)}{i}/({get_column_letter(3)}{i}*{SPRINT_COUNT}),0)")
+        out_col += 1
+        ws_art.cell(row=i, column=out_col, value=f"=AVERAGEIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!${get_column_letter(avg_col_rw)}:${get_column_letter(avg_col_rw)})")
+        out_col += 1
+        ws_art.cell(row=i, column=out_col, value=f"=SUMIF(Resource_Workload!$D:$D,{a_ref},Resource_Workload!${get_column_letter(over_col_rw)}:${get_column_letter(over_col_rw)})")
 
     # Summary by Team (ART + Team + Unit)
     ws_team = wb.create_sheet("Summary_Team")
     team_headers = [
         "ART","Team","Unit","Headcount","Total Cap/Sprint",
-        "S1 Hrs","S2 Hrs","S3 Hrs","S4 Hrs","S5 Hrs","S6 Hrs","S7 Hrs","S8 Hrs",
+    ] + [f"S{i} Hrs" for i in range(1, SPRINT_COUNT + 1)] + [
         "Total Hrs","Overall Util %","Avg Util %","Over/Under Hrs"
     ]
     ws_team.append(team_headers)
@@ -418,25 +452,39 @@ def build_workbook(data: Dict[str, List[Resource]]):
         # COUNTIFS over ART(D), Team(E), Unit(F)
         ws_team.cell(row=i, column=4, value="=COUNTIFS(Resource_Workload!$D:$D,"+a_ref+",Resource_Workload!$E:$E,"+b_ref+",Resource_Workload!$F:$F,"+c_ref+")")
         ws_team.cell(row=i, column=5, value="=SUMIFS(Resource_Workload!$G:$G,Resource_Workload!$D:$D,"+a_ref+",Resource_Workload!$E:$E,"+b_ref+",Resource_Workload!$F:$F,"+c_ref+")")
-        hrs_cols = ["$P:$P","$Q:$Q","$R:$R","$S:$S","$T:$T","$U:$U","$V:$V","$W:$W"]
-        for s, col in enumerate(hrs_cols, start=6):
-            ws_team.cell(row=i, column=s, value=f"=SUMIFS(Resource_Workload!{col},Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
-        # Total hours (X)
-        ws_team.cell(row=i, column=14, value=f"=SUMIFS(Resource_Workload!$X:$X,Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
-        # Overall Util % = TotalHrs / (TotalCapPerSprint * 8)
-        ws_team.cell(row=i, column=15, value=f"=IFERROR({get_column_letter(14)}{i}/({get_column_letter(5)}{i}*8),0)")
-        # Avg Util % (Y)
-        ws_team.cell(row=i, column=16, value=f"=AVERAGEIFS(Resource_Workload!$Y:$Y,Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
-        # Over/Under (Z)
-        ws_team.cell(row=i, column=17, value=f"=SUMIFS(Resource_Workload!$Z:$Z,Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
+        # Dynamic hours cols on Resource_Workload
+        alloc_start_col = 8
+        hours_start_col = alloc_start_col + SPRINT_COUNT
+        out_col = 6
+        for s in range(SPRINT_COUNT):
+            hrs_letter = get_column_letter(hours_start_col + s)
+            ws_team.cell(row=i, column=out_col, value=f"=SUMIFS(Resource_Workload!${hrs_letter}:${hrs_letter},Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
+            out_col += 1
+        # Tail columns from RW
+        total_col_rw = hours_start_col + SPRINT_COUNT
+        avg_col_rw = total_col_rw + 1
+        over_col_rw = avg_col_rw + 1
+        ws_team.cell(row=i, column=out_col, value=f"=SUMIFS(Resource_Workload!${get_column_letter(total_col_rw)}:${get_column_letter(total_col_rw)},Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
+        out_col += 1
+        ws_team.cell(row=i, column=out_col, value=f"=IFERROR({get_column_letter(out_col-1)}{i}/({get_column_letter(5)}{i}*{SPRINT_COUNT}),0)")
+        out_col += 1
+        ws_team.cell(row=i, column=out_col, value=f"=AVERAGEIFS(Resource_Workload!${get_column_letter(avg_col_rw)}:${get_column_letter(avg_col_rw)},Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
+        out_col += 1
+        ws_team.cell(row=i, column=out_col, value=f"=SUMIFS(Resource_Workload!${get_column_letter(over_col_rw)}:${get_column_letter(over_col_rw)},Resource_Workload!$D:$D,{a_ref},Resource_Workload!$E:$E,{b_ref},Resource_Workload!$F:$F,{c_ref})")
 
     # Dashboard – lightweight KPIs
     ws_dash = wb.create_sheet("Dashboard")
     ws_dash.append(["Metric","Value"]) 
     ws_dash.append(["Total Resources", f"=COUNTA(Resource_Workload!A:A)-1"])
-    ws_dash.append(["Avg Utilization (all)", f"=AVERAGE(Resource_Workload!Y:Y)"])
+    # Determine the Avg Util % column letter dynamically
+    alloc_start_col = 8
+    hours_start_col = alloc_start_col + SPRINT_COUNT
+    total_col_rw = hours_start_col + SPRINT_COUNT
+    avg_col_rw = total_col_rw + 1
+    avg_letter = get_column_letter(avg_col_rw)
+    ws_dash.append(["Avg Utilization (all)", f"=AVERAGE(Resource_Workload!{avg_letter}:{avg_letter})"])
     # Note: embed comparison string carefully to avoid quote escaping issues
-    ws_dash.append(["Overutilized Count (>1.0 avg)", "=COUNTIF(Resource_Workload!Y:Y,\">1\")"])
+    ws_dash.append(["Overutilized Count (>1.0 avg)", f"=COUNTIF(Resource_Workload!{avg_letter}:{avg_letter},\">1\")"])
     style_header(ws_dash, 1)
     set_col_widths(ws_dash, {1:36,2:24})
 

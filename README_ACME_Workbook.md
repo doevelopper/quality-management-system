@@ -45,6 +45,17 @@ When a role has no explicit name in the source markdown, the generator assigns a
 - Adjust sprint count/length by editing the script (`Sprints` sheet creation part).
 - You can safely add extra columns/sheets; the generator only overwrites sheets by re-creating the file.
 
+### Planning parameters
+At the top of `tools/generate_acme_workbook.py`, you can change:
+
+- `SPRINT_COUNT` (default: 8)
+- `SPRINT_CALENDAR_LENGTH_DAYS` (default: 14)
+- `WORKING_DAYS_PER_SPRINT` (default: 10)
+- `HOURS_PER_WORK_DAY` (default: 6.5)
+
+The default per-person capacity is computed as `WORKING_DAYS_PER_SPRINT * HOURS_PER_WORK_DAY` and prefilled in `Resource_Workload`.
+All formulas (hours per sprint, totals, utilization, and the Summary sheets) adjust automatically to the sprint count.
+
 ## Troubleshooting
 - If Excel shows formulas as text, ensure the cells are not formatted as Text.
 - If you add many resources, you may want to widen columns or freeze panes differently.
