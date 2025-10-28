@@ -16,6 +16,14 @@
     - [2.3 Test Reports](#23-test-reports)
     - [2.4 Traceability Documents](#24-traceability-documents)
   - [3. Naming Convention](#3-naming-convention)
+    - [3.0 File and Directory Naming Convention](#30-file-and-directory-naming-convention)
+      - [3.0.1 Directory Structure](#301-directory-structure)
+      - [3.0.2 Requirements Document File Naming](#302-requirements-document-file-naming)
+      - [3.0.3 Test Plan File Naming](#303-test-plan-file-naming)
+      - [3.0.4 Test Report File Naming](#304-test-report-file-naming)
+      - [3.0.5 Supporting Document File Naming](#305-supporting-document-file-naming)
+      - [3.0.6 Multi-Project Repositories](#306-multi-project-repositories)
+      - [3.0.7 Version Control](#307-version-control)
     - [3.1 Requirements Naming Convention](#31-requirements-naming-convention)
       - [Breakdown:](#breakdown)
       - [Examples:](#examples)
@@ -49,26 +57,6 @@
   - [9. Tools and Templates](#9-tools-and-templates)
     - [9.1 Recommended Tools](#91-recommended-tools)
     - [9.2 Templates](#92-templates)
-- [Documentation Templates](#documentation-templates)
-  - [Requirements Specification Template](#requirements-specification-template)
-  - [Test Plan Template](#test-plan-template)
-  - [Test Report Template](#test-report-template)
-  - [Safety Requirements Specification Template](#safety-requirements-specification-template)
-  - [Security Requirements Specification Template](#security-requirements-specification-template)
-  - [Interface Control Document Template](#interface-control-document-template)
-  - [Concept of Operations Template](#concept-of-operations-template)
-  - [Requirements Traceability Matrix Template](#requirements-traceability-matrix-template)
-  - [10. Review and Approval Process](#10-review-and-approval-process)
-    - [10.1 Review Checklist](#101-review-checklist)
-    - [10.2 Approval Authorities](#102-approval-authorities)
-  - [11. Documentation Lifecycle Management](#11-documentation-lifecycle-management)
-    - [11.1 Storage and Access](#111-storage-and-access)
-    - [11.2 Maintenance](#112-maintenance)
-    - [11.3 Backup and Recovery](#113-backup-and-recovery)
-  - [12. Metrics and Quality Assurance](#12-metrics-and-quality-assurance)
-    - [12.1 Documentation Quality Metrics](#121-documentation-quality-metrics)
-    - [12.2 Quality Assurance Activities](#122-quality-assurance-activities)
-  - [13. Conclusion](#13-conclusion)
 
 ---
 
@@ -145,6 +133,12 @@ Each is briefly described, including its purpose, key coverage, and accessibilit
    - These open specifications standardize modular embedded hardware designs, including processor modules, interfaces, and mechanical form factors for integration with firmware, software, and Linux-based systems.
    - They promote interoperability and security in hardware design, addressing gaps in mechanical and electronic aspects of complex systems.
    - Accessibility: Open standards freely available for download from the SGET website (https://sget.org/standards/), developed by a non-profit organization.
+
+9. **ISA/IEC 62443: Security for Industrial Automation and Control Systems (Latest version)**:
+   - This series of standards provides a comprehensive framework for implementing cybersecurity in industrial automation and control systems (IACS), including network segmentation, access control, and secure development lifecycle.
+   - It addresses security requirements for embedded systems, PLCs, SCADA systems, and industrial networks, with specific guidance on zones and conduits, security levels (SL 1-4), and defense-in-depth strategies.
+   - Particularly relevant for robotic systems, unmanned vehicles, and industrial equipment with networked connectivity.
+   - Accessibility: Available from ISA (International Society of Automation) and IEC (International Electrotechnical Commission). Some parts available for purchase; summaries and implementation guides available freely from ISA/IEC websites.
 
 
 **Scope**:
@@ -266,13 +260,233 @@ The following document types are defined to capture requirements and their valid
   - **Benefits**: Verification coverage analysis, regression test selection
   - **Links**: Requirements → Test Cases → Test Results → Defects
 
+- **`SRTM`**: Security Requirements Traceability Matrix
+  - **Priority**: HIGH (for security-critical systems)
+  - **Purpose**: Dedicated traceability for security requirements from threat analysis to validation
+  - **Format**: Matrix linking threat models → SecRS → security controls → SecTP → SecTR
+  - **Compliance**: IEC 62443, NIST SP 800-160, ISO/IEC 27001
+  - **Benefits**: Security audit support, vulnerability gap analysis, attack surface management
+
 Each type serves a distinct purpose in the project lifecycle, ensuring comprehensive coverage from stakeholder needs through conception, design, implementation, to verification and validation.
 
 ---
 
 ## 3. Naming Convention
 
-A structured naming convention is mandatory for all requirements and test plans to ensure traceability and uniqueness.
+A structured naming convention is mandatory for all requirements, test plans, and their associated files to ensure traceability and uniqueness.
+
+### 3.0 File and Directory Naming Convention
+
+All project documentation must follow a standardized file and directory structure to ensure consistency and ease of navigation.
+
+#### 3.0.1 Directory Structure
+
+Projects should organize documentation using the following directory structure:
+
+```plaintext
+[PROJECT_ROOT]/
+├── docs/
+│   ├── requirements/
+│   │   ├── StRS-[PROJ].md          # Stakeholder Requirements
+│   │   ├── URS-[PROJ].md           # User Requirements
+│   │   ├── SysRS-[PROJ].md         # System Requirements
+│   │   ├── SwRS-[PROJ].md          # Software Requirements
+│   │   ├── HwRS-[PROJ].md          # Hardware Requirements
+│   │   ├── SafetyRS-[PROJ].md      # Safety Requirements
+│   │   ├── SecRS-[PROJ].md         # Security Requirements
+│   │   └── SDD-[PROJ].md           # Software Design Description
+│   ├── test-plans/
+│   │   ├── StRTP-[PROJ].md         # Stakeholder Test Plans
+│   │   ├── URTP-[PROJ].md          # User Test Plans
+│   │   ├── SysRTP-[PROJ].md        # System Test Plans
+│   │   ├── SwTP-[PROJ].md          # Software Test Plans
+│   │   ├── HwTP-[PROJ].md          # Hardware Test Plans
+│   │   ├── SafetyTP-[PROJ].md      # Safety Test Plans
+│   │   └── SecTP-[PROJ].md         # Security Test Plans
+│   ├── test-reports/
+│   │   ├── StRTR-[PROJ].md         # Stakeholder Test Reports
+│   │   ├── URTR-[PROJ].md          # User Test Reports
+│   │   ├── SysRTR-[PROJ].md        # System Test Reports
+│   │   ├── SwTR-[PROJ].md          # Software Test Reports
+│   │   ├── HwTR-[PROJ].md          # Hardware Test Reports
+│   │   ├── SafetyTR-[PROJ].md      # Safety Test Reports
+│   │   └── SecTR-[PROJ].md         # Security Test Reports
+│   ├── interfaces/
+│   │   ├── ICD-[PROJ]-[InterfaceName].md
+│   │   └── ...
+│   ├── operations/
+│   │   ├── ConOps-[PROJ]-[Domain].md
+│   │   └── ...
+│   └── traceability/
+│       ├── RTM-[PROJ].md           # Requirements Traceability Matrix
+│       ├── TTM-[PROJ].md           # Test Traceability Matrix
+│       └── SRTM-[PROJ].md          # Security Requirements Traceability Matrix
+```
+
+#### 3.0.2 Requirements Document File Naming
+
+Each requirements document type is stored in a single Markdown file per project, containing all requirements of that type.
+
+**Format**: `[DocType]-[PROJ].md`
+
+**Examples**:
+- `URS-RAC.md` - Contains all User Requirements for RAC project (URS-RAC-M-0001-1, URS-RAC-M-0002-1, etc.)
+- `SysRS-RAC.md` - Contains all System Requirements for RAC project
+- `SwRS-RAC.md` - Contains all Software Requirements for RAC project
+- `SafetyRS-RAC.md` - Contains all Safety Requirements for RAC project
+- `SecRS-RAC.md` - Contains all Security Requirements for RAC project
+- `HwRS-RAC.md` - Contains all Hardware Requirements for RAC project
+
+**File Organization**:
+- Each requirement within the file is structured as a section with its full ID as the heading
+- Requirements are ordered sequentially by their ID number
+- Each requirement includes: ID, description, rationale, parent references, compliance references
+
+**Example File Structure** (`URS-RAC.md`):
+```markdown
+# User Requirements Specification - RAC Project
+
+## URS-RAC-M-0001-1 [StRS-RAC-M-0001-1]
+
+**Type**: Mandatory  
+**Status**: Approved  
+**Description**: The robotic arm shall provide position control with ±0.5mm accuracy across the full workspace.  
+**Rationale**: Core functionality for precise manipulation tasks  
+**Reference**: NASA Systems Engineering Handbook Section 6.2  
+**Parent**: [StRS-RAC-M-0001-1]
+
+## URS-RAC-M-0002-1 [StRS-RAC-M-0001-1]
+
+**Type**: Mandatory  
+**Status**: Draft  
+**Description**: ...
+```
+
+#### 3.0.3 Test Plan File Naming
+
+Each test plan document type is stored in a single Markdown file per project, containing all test plans of that type.
+
+**Format**: `[TestPlanType]-[PROJ].md`
+
+**Examples**:
+- `URTP-RAC.md` - Contains all User Test Plans for RAC project (URTP-RAC-0001-1, URTP-RAC-0002-1, etc.)
+- `SysRTP-RAC.md` - Contains all System Test Plans for RAC project
+- `SwTP-RAC.md` - Contains all Software Test Plans for RAC project
+- `SafetyTP-RAC.md` - Contains all Safety Test Plans for RAC project
+- `SecTP-RAC.md` - Contains all Security Test Plans for RAC project
+
+**File Organization**:
+- Each test plan within the file is structured as a section with its full ID as the heading
+- Test plans are ordered sequentially by their ID number
+- Each test plan includes: ID, parent requirement references, test objectives, test cases, pass/fail criteria
+
+**Example File Structure** (`URTP-RAC.md`):
+```markdown
+# User Requirements Test Plan - RAC Project
+
+## URTP-RAC-0001-1 [URS-RAC-M-0001-1]
+
+**Parent Requirement**: [URS-RAC-M-0001-1]  
+**Test Objective**: Verify ±0.5mm position accuracy across workspace  
+**Status**: Approved  
+**Test Cases**:
+- TC-0001: Position accuracy measurement at workspace corners
+- TC-0002: Position accuracy during continuous motion
+
+**Pass/Fail Criteria**: Maximum position error must not exceed 0.5mm
+
+## URTP-RAC-0002-1 [URS-RAC-M-0002-1]
+
+**Parent Requirement**: [URS-RAC-M-0002-1]  
+**Test Objective**: ...
+```
+
+#### 3.0.4 Test Report File Naming
+
+Each test report document type is stored in a single Markdown file per project, containing all test reports of that type.
+
+**Format**: `[TestReportType]-[PROJ].md`
+
+**Examples**:
+- `URTR-RAC.md` - Contains all User Test Reports for RAC project
+- `SysRTR-RAC.md` - Contains all System Test Reports for RAC project
+- `SwTR-RAC.md` - Contains all Software Test Reports for RAC project
+- `SafetyTR-RAC.md` - Contains all Safety Test Reports for RAC project
+- `SecTR-RAC.md` - Contains all Security Test Reports for RAC project
+
+**File Organization**:
+- Each test report within the file is structured as a section with its full ID as the heading
+- Test reports are ordered chronologically (most recent first) or by test plan ID
+- Each test report includes: ID, test plan reference, execution date, pass/fail status, results, evidence
+
+**Example File Structure** (`URTR-RAC.md`):
+```markdown
+# User Requirements Test Report - RAC Project
+
+## URTR-RAC-URTP-0001-0001-P-20251105-1 [URTP-RAC-0001-1]
+
+**Test Plan**: [URTP-RAC-0001-1]  
+**Test Case**: 0001  
+**Execution Date**: 2025-11-05  
+**Tester**: J. Smith  
+**Result**: PASS  
+**Description**: Position accuracy verified across workspace  
+**Measurements**: Maximum error observed: 0.42mm (within 0.5mm tolerance)  
+**Evidence**: See attached measurement data log-20251105-001.csv
+
+## URTR-RAC-URTP-0001-0002-P-20251105-1 [URTP-RAC-0001-1]
+
+**Test Plan**: [URTP-RAC-0001-1]  
+**Test Case**: 0002  
+**Execution Date**: 2025-11-05  
+**Result**: PASS  
+**Description**: ...
+```
+
+**Alternative Organization** (for high-volume test reports):
+- If test reports become very numerous (hundreds), they may be organized in yearly or quarterly files
+- Format: `[TestReportType]-[PROJ]-[YYYY].md` or `[TestReportType]-[PROJ]-[YYYY]-Q[n].md`
+- Examples: `URTR-RAC-2025.md`, `SwTR-RAC-2025-Q4.md`
+
+#### 3.0.5 Supporting Document File Naming
+
+**Interface Control Documents**:
+- Format: `ICD-[PROJ]-[InterfaceName].md`
+- Examples: `ICD-RAC-CAN-MotorController.md`, `ICD-RAC-Ethernet-HMI.md`
+
+**Concept of Operations**:
+- Format: `ConOps-[PROJ]-[Domain].md` or `ConOps-[PROJ].md`
+- Examples: `ConOps-RAC-Manufacturing.md`, `ConOps-RAC.md`
+
+**Traceability Matrices**:
+- Format: `[MatrixType]-[PROJ].md` or `[MatrixType]-[PROJ].xlsx`
+- Examples: `RTM-RAC.md`, `TTM-RAC.xlsx`, `SRTM-RAC.md`
+
+#### 3.0.6 Multi-Project Repositories
+
+For repositories containing multiple projects, add project subdirectories:
+
+```plaintext
+[REPOSITORY_ROOT]/
+├── projects/
+│   ├── RAC/
+│   │   └── docs/
+│   │       ├── requirements/
+│   │       ├── test-plans/
+│   │       └── ...
+│   └── ESC/
+│       └── docs/
+│           ├── requirements/
+│           ├── test-plans/
+│           └── ...
+```
+
+#### 3.0.7 Version Control
+
+- All documentation files must be stored in version control (Git recommended)
+- File versions are managed by version control system (Git commits)
+- Document version numbers (in IDs) track logical content versions
+- Commit messages should reference document IDs when updating requirements
 
 ### 3.1 Requirements Naming Convention
 
