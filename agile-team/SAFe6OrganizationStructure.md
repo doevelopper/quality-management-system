@@ -418,6 +418,8 @@
 6. **Airborne (ESC) ↔ Integration**: Forge & War Machine with Thor/Hulk validate motor control, power integration, and HIL/SIL test coverage
 7. **Airborne (Gimbal) ↔ GCS & Integration**: Human Torch with Wonder Woman/Ant-Man align stabilization interfaces, pointing control, and system-level testing
 8. **Security Auditors ↔ All Teams**: Nite Owl & Silk Spectre coordinate audits, evidence collection, and compliance verification across the solution
+9. **Data & Analytics ↔ Airborne (ESC)**: Vision/Scarlet Witch with Forge/War Machine define telemetry schemas (current, voltage, RPM, temperature), time-series ingestion, and KPI dashboards
+10. **Data & Analytics ↔ Airborne (Gimbal)**: Vision/Scarlet Witch with Human Torch specify stabilization metrics (vibration, jitter, pointing error), logging cadence, and model training datasets
 
 ### **Solution-Level Synchronization**:
 - **Weekly Solution Sync**: M facilitates with all RTEs
