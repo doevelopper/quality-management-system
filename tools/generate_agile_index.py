@@ -22,11 +22,28 @@ def parse_art_names(text: str) -> Dict[str, str]:
     return arts
 
 
-def collect_teams() -> List[Tuple[str, str, str]]:
-    """Return list of (art_num, team_dir_name, team_title)."""
-    items: List[Tuple[str, str, str]] = []
+def collect_teams() -> Tuple[List[Tuple[str, str, str]], List[Tuple[str, str]]]:
+    """Return (art_teams, mgmt_dirs) where:
+    - art_teams: list of (art_num, team_dir_name, team_title)
+    - mgmt_dirs: list of (dir_name, title) for Portfolio/LargeSolution
+    """
+    art_items: List[Tuple[str, str, str]] = []
+    mgmt: List[Tuple[str, str]] = []
     for p in AGILE.iterdir():
         if not p.is_dir() or not p.name.startswith("ART"):
+            if p.name in ("Portfolio", "LargeSolution"):
+                title = p.name
+                readme = p / "README.md"
+                if readme.exists():
+                    try:
+                        for line in readme.read_text(encoding="utf-8", errors="ignore").splitlines():
+                            h = re.match(r"^#\s+(.+)$", line.strip())
+                            if h:
+                                title = h.group(1).strip()
+                                break
+                    except Exception:
+                        pass
+                mgmt.append((p.name, title))
             continue
         m = re.match(r"^ART(\d+)_", p.name)
         if not m:
@@ -44,10 +61,11 @@ def collect_teams() -> List[Tuple[str, str, str]]:
                         break
             except Exception:
                 pass
-        items.append((art_num, p.name, title))
+        art_items.append((art_num, p.name, title))
     # Sort by ART number then title
-    items.sort(key=lambda t: (int(t[0]), t[2].lower()))
-    return items
+    art_items.sort(key=lambda t: (int(t[0]), t[2].lower()))
+    mgmt.sort(key=lambda t: t[1].lower())
+    return art_items, mgmt
 
 
 def build_index(art_names: Dict[str, str], teams: List[Tuple[str, str, str]]) -> str:
@@ -74,10 +92,19 @@ def main() -> None:
     art_names: Dict[str, str] = {}
     if ORG.exists():
         art_names = parse_art_names(ORG.read_text(encoding="utf-8"))
-    teams = collect_teams()
-    content = build_index(art_names, teams)
+    art_teams, mgmt = collect_teams()
+    content_lines: List[str] = ["# Agile Release Trains (Index)", ""]
+    # Management sections first if present
+    if mgmt:
+        for dname, title in mgmt:
+            content_lines.append(f"## {title}")
+            content_lines.append("")
+            content_lines.append(f"- [{title}]({dname}/README.md)")
+            content_lines.append("")
+    content_lines.append(build_index(art_names, art_teams))
+    content = "\n".join(content_lines).rstrip() + "\n"
     (AGILE / "README.md").write_text(content, encoding="utf-8")
-    print(f"Wrote {AGILE/'README.md'} with {len(teams)} teams across {len(set(a for a,_,_ in teams))} ARTs")
+    print(f"Wrote {AGILE/'README.md'} with {len(art_teams)} teams across {len(set(a for a,_,_ in art_teams))} ARTs")
 
 
 if __name__ == "__main__":

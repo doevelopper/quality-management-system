@@ -55,7 +55,8 @@ def main() -> None:
     if not AGILE.exists():
         raise SystemExit(f"Missing agile-team directory: {AGILE}")
     count = 0
-    for team_dir in sorted([p for p in AGILE.iterdir() if p.is_dir() and p.name.startswith("ART")], key=lambda p: p.name):
+    team_dirs = [p for p in AGILE.iterdir() if p.is_dir() and (p.name.startswith("ART") or p.name in ("Portfolio", "LargeSolution"))]
+    for team_dir in sorted(team_dirs, key=lambda p: p.name):
         md_files = [p for p in team_dir.glob("*.md") if p.name.lower() != "readme.md"]
         if not md_files:
             # Skip empty folders
