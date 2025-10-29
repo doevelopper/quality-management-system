@@ -91,6 +91,11 @@ This document establishes a standardized approach for creating, organizing, and 
    - This standard provides a conceptual model and best practices for describing the architecture of systems and software.
    - It covers the roles, responsibilities, and processes involved in creating, documenting, and evaluating architecture descriptions, which are essential for system design.
 
+6. **ISO/IEC 5962:2021 Software Package Data Exchange (SPDX) — Software Bill of Materials (SBOM) format**:
+  - Establishes a standardized, machine-readable format to describe software components, versions, licensing, and provenance across the supply chain.
+  - Relevant for configuration management, license compliance, and traceability of third-party software used to implement requirements and tests.
+  - Recommended to generate and maintain an SBOM for each delivery and significant baseline.
+
 ## 1.2 Security by Design Standard
 
 The following additional standards are recommended. These selections prioritize freely accessible or open resources where possible, drawing from reputable sources such as NIST, OWASP, NASA, INCOSE, and others.
@@ -141,6 +146,11 @@ Each is briefly described, including its purpose, key coverage, and accessibilit
    - It addresses security requirements for embedded systems, PLCs, SCADA systems, and industrial networks, with specific guidance on zones and conduits, security levels (SL 1-4), and defense-in-depth strategies.
    - Particularly relevant for robotic systems, unmanned vehicles, and industrial equipment with networked connectivity.
    - Accessibility: Available from ISA (International Society of Automation) and IEC (International Electrotechnical Commission). Some parts available for purchase; summaries and implementation guides available freely from ISA/IEC websites.
+
+10. **ISO/IEC 5962:2021 (SPDX) – Software Bill of Materials**:
+  - Security-by-design enabler for software supply chain transparency; documents open-source and third‑party components, versions, and licenses.
+  - Supports vulnerability management, license compliance, and provenance tracking across builds and releases.
+  - Accessibility: Specification and tools are openly available from the SPDX community (see https://spdx.dev/).
 
 
 **Scope**:
@@ -330,6 +340,13 @@ The following document types are defined to capture requirements and their valid
   - **Traceability**: Links to HwRS, procurement, manufacturing
   - **File Naming**: `BOM-[PROJ].xlsx` or `BOM-[PROJ]-[Assembly].xlsx`
 
+- **`SBOM`**: Software Bill of Materials (SPDX)
+  - **Priority**: HIGH (for software-containing projects)
+  - **Purpose**: Enumerate software components, versions, hashes, licenses, and relationships for delivered software images/artifacts
+  - **Compliance**: ISO/IEC 5962:2021 (SPDX)
+  - **Traceability**: Links to SwRS, third-party notices, security findings, and release baselines
+  - **File Naming**: `SBOM-[PROJ].spdx.json` (preferred), or `SBOM-[PROJ].spdx.yml`
+
 - **`DRR`**: Design Review Records
   - **Priority**: MEDIUM
   - **Purpose**: Document formal design review meetings and decisions
@@ -400,6 +417,7 @@ Projects should organize documentation using the following directory structure:
 │       ├── CMP-[PROJ].md           # Configuration Management Plan
 │       ├── RR-[PROJ].md            # Risk Register
 │       ├── BOM-[PROJ].xlsx         # Bill of Materials
+│       ├── SBOM-[PROJ].spdx.json   # Software Bill of Materials (ISO/IEC 5962:2021)
 │       └── DRR-[PROJ]-*.md         # Design Review Records
 ```
 
