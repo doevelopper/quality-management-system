@@ -187,6 +187,8 @@
 - **Team**: Sensor integration, Stealth technology developers
 
 #### **Team Gamma: X-Force Propulsion (Electronic Speed Controller - ESC)**
+- **Data dependencies**: See Critical Integration Points: Data & Analytics ↔ Airborne (ESC) for telemetry schemas, ingestion, and KPI dashboards
+
 **Forge** - *Scrum Master*
 - **Skills**: Mechatronics, Power Electronics, Control Systems
 - **Responsibilities**: Facilitates ESC hardware/firmware development and control tuning
@@ -198,6 +200,8 @@
 - **Team**: Integration engineers, HIL/SIL testing specialists, Reliability engineers
 
 #### **Team Delta: Fantastic Four Stabilization (Gimbal Control)**
+- **Data dependencies**: See Critical Integration Points: Data & Analytics ↔ Airborne (Gimbal) for stabilization metrics, logging cadence, and training datasets
+
 **Human Torch** - *Scrum Master*
 - **Skills**: Thermal Dynamics (Vibration Mitigation), Agile Coordination, Rapid Iteration
 - **Responsibilities**: Facilitates gimbal stabilization, pointing control, and payload interface
@@ -280,6 +284,8 @@
 - **Team**: Incident response, Threat mitigation specialists
 
 #### **Team Gamma: Watchmen Compliance (Security Auditors/Assessors)**
+- **Data dependencies**: See Critical Integration Points: Security Auditors ↔ All Teams for audit logs, evidence repositories, and compliance dashboards
+
 **Nite Owl** - *Scrum Master*
 - **Skills**: Digital Forensics, Tooling Automation, Documentation Rigor
 - **Responsibilities**: Facilitates internal security assessments, control testing, and audit readiness
