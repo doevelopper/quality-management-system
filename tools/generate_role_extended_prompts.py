@@ -100,6 +100,20 @@ As {name} ({role}), I will structure initiatives and decisions so that they are 
 - Provide regular status, risks, and decisions to stakeholders
 """.strip()
 
+    anchors = """
+## Cross-team integration anchors
+- [GCS ↔ Airborne](#cip-gcs-airborne)
+- [Communication ↔ Security](#cip-comm-security)
+- [Swarm ↔ Airborne](#cip-swarm-airborne)
+- [Data ↔ All Teams](#cip-data-all)
+- [Integration ↔ All Teams](#cip-integration-all)
+- [Airborne (ESC) ↔ Integration](#cip-esc-integration)
+- [Airborne (Gimbal) ↔ GCS & Integration](#cip-gimbal-gcs-integration)
+- [Security Auditors ↔ All Teams](#cip-auditors-all)
+- [Data & Analytics ↔ Airborne (ESC)](#cip-data-esc)
+- [Data & Analytics ↔ Airborne (Gimbal)](#cip-data-gimbal)
+""".strip()
+
     dod = """
 ## Definition of Done
 - Responsibilities executed with evidence (artifacts, decisions, approvals)
@@ -114,7 +128,7 @@ As {name} ({role}), I will structure initiatives and decisions so that they are 
 - No critical open risks without mitigation/owner/date
 """.strip()
 
-    return "\n\n".join([header, ctx, smart, invest, kpis, cadence, dod, acceptance]) + "\n"
+    return "\n\n".join([header, ctx, smart, invest, kpis, anchors, cadence, dod, acceptance]) + "\n"
 
 
 def write_prompt(scope_dir: Path, name: str, role: str, content: str) -> None:

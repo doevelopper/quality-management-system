@@ -31,6 +31,18 @@ As Hermes (Portfolio Coordinator), I will structure initiatives and decisions so
 - Stakeholder satisfaction and decision latency
 - Cross-team dependency aging and closure rate
 
+## Cross-team integration anchors
+- [GCS ↔ Airborne](#cip-gcs-airborne)
+- [Communication ↔ Security](#cip-comm-security)
+- [Swarm ↔ Airborne](#cip-swarm-airborne)
+- [Data ↔ All Teams](#cip-data-all)
+- [Integration ↔ All Teams](#cip-integration-all)
+- [Airborne (ESC) ↔ Integration](#cip-esc-integration)
+- [Airborne (Gimbal) ↔ GCS & Integration](#cip-gimbal-gcs-integration)
+- [Security Auditors ↔ All Teams](#cip-auditors-all)
+- [Data & Analytics ↔ Airborne (ESC)](#cip-data-esc)
+- [Data & Analytics ↔ Airborne (Gimbal)](#cip-data-gimbal)
+
 ## Operating cadence
 - Participate in PI planning, system demos, and governance reviews
 - Facilitate or attend Solution/Architecture/Stakeholder syncs as applicable
