@@ -186,6 +186,23 @@
 - **Responsibilities**: Facilitates sensor fusion and stealth systems team
 - **Team**: Sensor integration, Stealth technology developers
 
+#### **Team Gamma: X-Force Propulsion (Electronic Speed Controller - ESC)**
+**Forge** - *Scrum Master*
+- **Skills**: Mechatronics, Power Electronics, Control Systems
+- **Responsibilities**: Facilitates ESC hardware/firmware development and control tuning
+- **Team**: Embedded systems engineers, Power electronics specialists, Control engineers
+
+**War Machine** - *Scrum Master*
+- **Skills**: Systems Integration, Reliability Engineering, Safety Management
+- **Responsibilities**: Facilitates ESC integration with flight stack and validation (HIL/SIL)
+- **Team**: Integration engineers, HIL/SIL testing specialists, Reliability engineers
+
+#### **Team Delta: Fantastic Four Stabilization (Gimbal Control)**
+**Human Torch** - *Scrum Master*
+- **Skills**: Thermal Dynamics (Vibration Mitigation), Agile Coordination, Rapid Iteration
+- **Responsibilities**: Facilitates gimbal stabilization, pointing control, and payload interface
+- **Team**: Mechatronics engineers, Control algorithm developers, Embedded software specialists
+
 ---
 
 ### **ART 3: Communication Systems** 📡
@@ -261,6 +278,17 @@
 - **Skills**: Strategic Planning, Prediction, Complex System Management
 - **Responsibilities**: Facilitates threat response team
 - **Team**: Incident response, Threat mitigation specialists
+
+#### **Team Gamma: Watchmen Compliance (Security Auditors/Assessors)**
+**Nite Owl** - *Scrum Master*
+- **Skills**: Digital Forensics, Tooling Automation, Documentation Rigor
+- **Responsibilities**: Facilitates internal security assessments, control testing, and audit readiness
+- **Team**: Security auditors, GRC specialists, Evidence management analysts
+
+**Silk Spectre** - *Scrum Master*
+- **Skills**: Stakeholder Management, Evidence Collection, Process Discipline
+- **Responsibilities**: Facilitates external audit coordination, compliance verification, and remediation tracking
+- **Team**: Compliance assessors, Regulatory liaisons, Risk analysts
 
 ---
 
@@ -387,6 +415,9 @@
 3. **Swarm ↔ Airborne**: Jean Grey & Professor X coordinate autonomous flight behavior
 4. **Data ↔ All Teams**: Vision coordinates with all teams for data collection requirements
 5. **Integration ↔ All Teams**: Thor coordinates with all teams for system integration
+6. **Airborne (ESC) ↔ Integration**: Forge & War Machine with Thor/Hulk validate motor control, power integration, and HIL/SIL test coverage
+7. **Airborne (Gimbal) ↔ GCS & Integration**: Human Torch with Wonder Woman/Ant-Man align stabilization interfaces, pointing control, and system-level testing
+8. **Security Auditors ↔ All Teams**: Nite Owl & Silk Spectre coordinate audits, evidence collection, and compliance verification across the solution
 
 ### **Solution-Level Synchronization**:
 - **Weekly Solution Sync**: M facilitates with all RTEs
