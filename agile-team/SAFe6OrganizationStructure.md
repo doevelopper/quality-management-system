@@ -187,7 +187,7 @@
 - **Team**: Sensor integration, Stealth technology developers
 
 #### **Team Gamma: X-Force Propulsion (Electronic Speed Controller - ESC)**
-- **Data dependencies**: See Critical Integration Points: Data & Analytics ↔ Airborne (ESC) for telemetry schemas, ingestion, and KPI dashboards
+- **Data dependencies**: See Critical Integration Points: [Data & Analytics ↔ Airborne (ESC)](#cip-data-esc) for telemetry schemas, ingestion, and KPI dashboards
 
 **Forge** - *Scrum Master*
 - **Skills**: Mechatronics, Power Electronics, Control Systems
@@ -200,7 +200,7 @@
 - **Team**: Integration engineers, HIL/SIL testing specialists, Reliability engineers
 
 #### **Team Delta: Fantastic Four Stabilization (Gimbal Control)**
-- **Data dependencies**: See Critical Integration Points: Data & Analytics ↔ Airborne (Gimbal) for stabilization metrics, logging cadence, and training datasets
+- **Data dependencies**: See Critical Integration Points: [Data & Analytics ↔ Airborne (Gimbal)](#cip-data-gimbal) for stabilization metrics, logging cadence, and training datasets
 
 **Human Torch** - *Scrum Master*
 - **Skills**: Thermal Dynamics (Vibration Mitigation), Agile Coordination, Rapid Iteration
@@ -284,7 +284,7 @@
 - **Team**: Incident response, Threat mitigation specialists
 
 #### **Team Gamma: Watchmen Compliance (Security Auditors/Assessors)**
-- **Data dependencies**: See Critical Integration Points: Security Auditors ↔ All Teams for audit logs, evidence repositories, and compliance dashboards
+- **Data dependencies**: See Critical Integration Points: [Security Auditors ↔ All Teams](#cip-auditors-all) for audit logs, evidence repositories, and compliance dashboards
 
 **Nite Owl** - *Scrum Master*
 - **Skills**: Digital Forensics, Tooling Automation, Documentation Rigor
@@ -416,16 +416,16 @@
 
 ### **Critical Integration Points**:
 
-1. **GCS ↔ Airborne**: Batman & Professor X coordinate mission execution interfaces
-2. **Communication ↔ Security**: Raven & Nick Fury ensure secure communication protocols
-3. **Swarm ↔ Airborne**: Jean Grey & Professor X coordinate autonomous flight behavior
-4. **Data ↔ All Teams**: Vision coordinates with all teams for data collection requirements
-5. **Integration ↔ All Teams**: Thor coordinates with all teams for system integration
-6. **Airborne (ESC) ↔ Integration**: Forge & War Machine with Thor/Hulk validate motor control, power integration, and HIL/SIL test coverage
-7. **Airborne (Gimbal) ↔ GCS & Integration**: Human Torch with Wonder Woman/Ant-Man align stabilization interfaces, pointing control, and system-level testing
-8. **Security Auditors ↔ All Teams**: Nite Owl & Silk Spectre coordinate audits, evidence collection, and compliance verification across the solution
-9. **Data & Analytics ↔ Airborne (ESC)**: Vision/Scarlet Witch with Forge/War Machine define telemetry schemas (current, voltage, RPM, temperature), time-series ingestion, and KPI dashboards
-10. **Data & Analytics ↔ Airborne (Gimbal)**: Vision/Scarlet Witch with Human Torch specify stabilization metrics (vibration, jitter, pointing error), logging cadence, and model training datasets
+1. <a id="cip-gcs-airborne"></a> **GCS ↔ Airborne**: Batman & Professor X coordinate mission execution interfaces
+2. <a id="cip-comm-security"></a> **Communication ↔ Security**: Raven & Nick Fury ensure secure communication protocols
+3. <a id="cip-swarm-airborne"></a> **Swarm ↔ Airborne**: Jean Grey & Professor X coordinate autonomous flight behavior
+4. <a id="cip-data-all"></a> **Data ↔ All Teams**: Vision coordinates with all teams for data collection requirements
+5. <a id="cip-integration-all"></a> **Integration ↔ All Teams**: Thor coordinates with all teams for system integration
+6. <a id="cip-esc-integration"></a> **Airborne (ESC) ↔ Integration**: Forge & War Machine with Thor/Hulk validate motor control, power integration, and HIL/SIL test coverage
+7. <a id="cip-gimbal-gcs-integration"></a> **Airborne (Gimbal) ↔ GCS & Integration**: Human Torch with Wonder Woman/Ant-Man align stabilization interfaces, pointing control, and system-level testing
+8. <a id="cip-auditors-all"></a> **Security Auditors ↔ All Teams**: Nite Owl & Silk Spectre coordinate audits, evidence collection, and compliance verification across the solution
+9. <a id="cip-data-esc"></a> **Data & Analytics ↔ Airborne (ESC)**: Vision/Scarlet Witch with Forge/War Machine define telemetry schemas (current, voltage, RPM, temperature), time-series ingestion, and KPI dashboards
+10. <a id="cip-data-gimbal"></a> **Data & Analytics ↔ Airborne (Gimbal)**: Vision/Scarlet Witch with Human Torch specify stabilization metrics (vibration, jitter, pointing error), logging cadence, and model training datasets
 
 ### **Solution-Level Synchronization**:
 - **Weekly Solution Sync**: M facilitates with all RTEs
